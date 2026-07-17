@@ -1,0 +1,302 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Premium Business Growth Design System
+   Palette: Warm charcoal, cream, copper, olive, sand
+   Typography: Manrope - geometric, modern, friendly
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+@layer base {
+  :root {
+    /* Core palette - Warm & Premium */
+    --background: 40 30% 97%;
+    --foreground: 30 10% 15%;
+
+    --card: 40 25% 95%;
+    --card-foreground: 30 10% 15%;
+
+    --popover: 40 30% 97%;
+    --popover-foreground: 30 10% 15%;
+
+    /* Charcoal primary - warm undertone */
+    --primary: 30 8% 18%;
+    --primary-foreground: 40 30% 97%;
+
+    /* Cream/Sand secondary */
+    --secondary: 38 25% 90%;
+    --secondary-foreground: 30 8% 18%;
+
+    /* Muted sand tones */
+    --muted: 35 20% 92%;
+    --muted-foreground: 30 8% 45%;
+
+    /* Copper accent - warm, premium */
+    --accent: 25 70% 55%;
+    --accent-foreground: 40 30% 97%;
+
+    /* Olive accent */
+    --olive: 80 20% 40%;
+    --olive-foreground: 40 30% 97%;
+
+    /* Warm purple accent */
+    --plum: 320 25% 35%;
+    --plum-foreground: 40 30% 97%;
+
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 40 30% 97%;
+
+    --border: 35 15% 88%;
+    --input: 35 15% 88%;
+    --ring: 25 70% 55%;
+
+    --radius: 0.75rem;
+
+    /* Custom gradients */
+    --gradient-warm: linear-gradient(135deg, hsl(35 25% 95%) 0%, hsl(40 30% 97%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(40 30% 97%) 0%, hsl(38 25% 92%) 100%);
+    --gradient-copper: linear-gradient(135deg, hsl(25 70% 55%) 0%, hsl(20 60% 45%) 100%);
+    --gradient-dark: linear-gradient(135deg, hsl(30 8% 18%) 0%, hsl(30 10% 12%) 100%);
+
+    /* Shadows - warm tinted */
+    --shadow-sm: 0 2px 8px -2px hsl(30 10% 15% / 0.08);
+    --shadow-md: 0 8px 24px -8px hsl(30 10% 15% / 0.12);
+    --shadow-lg: 0 24px 48px -12px hsl(30 10% 15% / 0.18);
+    --shadow-glow: 0 0 40px -10px hsl(25 70% 55% / 0.3);
+
+    /* Animation timing */
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out-expo: cubic-bezier(0.87, 0, 0.13, 1);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 30 10% 8%;
+    --foreground: 40 20% 95%;
+
+    --card: 30 10% 12%;
+    --card-foreground: 40 20% 95%;
+
+    --popover: 30 10% 10%;
+    --popover-foreground: 40 20% 95%;
+
+    --primary: 40 20% 95%;
+    --primary-foreground: 30 10% 8%;
+
+    --secondary: 30 8% 18%;
+    --secondary-foreground: 40 20% 95%;
+
+    --muted: 30 8% 20%;
+    --muted-foreground: 35 15% 60%;
+
+    --accent: 25 70% 55%;
+    --accent-foreground: 40 30% 97%;
+
+    --olive: 80 25% 50%;
+    --olive-foreground: 30 10% 8%;
+
+    --plum: 320 30% 50%;
+    --plum-foreground: 30 10% 8%;
+
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 40 20% 95%;
+
+    --border: 30 8% 22%;
+    --input: 30 8% 22%;
+    --ring: 25 70% 55%;
+
+    --gradient-warm: linear-gradient(135deg, hsl(30 10% 10%) 0%, hsl(30 10% 8%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(30 10% 8%) 0%, hsl(30 10% 12%) 100%);
+    --gradient-copper: linear-gradient(135deg, hsl(25 70% 55%) 0%, hsl(20 60% 45%) 100%);
+    --gradient-dark: linear-gradient(135deg, hsl(30 10% 12%) 0%, hsl(30 8% 8%) 100%);
+
+    --shadow-sm: 0 2px 8px -2px hsl(0 0% 0% / 0.3);
+    --shadow-md: 0 8px 24px -8px hsl(0 0% 0% / 0.4);
+    --shadow-lg: 0 24px 48px -12px hsl(0 0% 0% / 0.5);
+    --shadow-glow: 0 0 40px -10px hsl(25 70% 55% / 0.4);
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Manrope', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  /* Premium button styles */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 
+           bg-primary text-primary-foreground font-medium rounded-lg
+           transition-all duration-300 ease-out
+           hover:shadow-lg hover:-translate-y-0.5
+           active:translate-y-0 active:shadow-md;
+  }
+
+  .btn-accent {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 
+           bg-accent text-accent-foreground font-medium rounded-lg
+           transition-all duration-300 ease-out
+           hover:shadow-glow hover:-translate-y-0.5
+           active:translate-y-0;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 
+           bg-transparent border-2 border-primary text-primary font-medium rounded-lg
+           transition-all duration-300 ease-out
+           hover:bg-primary hover:text-primary-foreground
+           active:scale-[0.98];
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2
+           text-foreground font-medium rounded-lg
+           transition-all duration-200 ease-out
+           hover:bg-secondary;
+  }
+
+  /* Card styles */
+  .card-premium {
+    @apply bg-card rounded-2xl p-8 
+           border border-border/50
+           shadow-sm transition-all duration-500 ease-out
+           hover:shadow-md hover:-translate-y-1 hover:border-border;
+  }
+
+  .card-feature {
+    @apply bg-gradient-to-b from-card to-background 
+           rounded-2xl p-8 border border-border/30
+           transition-all duration-500 ease-out
+           hover:shadow-lg hover:-translate-y-2 hover:border-accent/30;
+  }
+
+  /* Section styles */
+  .section-padding {
+    @apply py-24 md:py-32 lg:py-40;
+  }
+
+  .container-narrow {
+    @apply max-w-5xl mx-auto px-6;
+  }
+
+  .container-wide {
+    @apply max-w-7xl mx-auto px-6;
+  }
+
+  /* Typography */
+  .heading-xl {
+    @apply text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.1] tracking-tight;
+  }
+
+  .heading-lg {
+    @apply text-3xl md:text-4xl lg:text-5xl font-bold leading-[1.15] tracking-tight;
+  }
+
+  .heading-md {
+    @apply text-2xl md:text-3xl font-semibold leading-tight;
+  }
+
+  .heading-sm {
+    @apply text-xl md:text-2xl font-semibold leading-tight;
+  }
+
+  .body-lg {
+    @apply text-lg md:text-xl text-muted-foreground leading-relaxed;
+  }
+
+  .body-md {
+    @apply text-base md:text-lg text-muted-foreground leading-relaxed;
+  }
+
+  /* Label/Tag styles */
+  .tag {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 
+           text-sm font-medium rounded-full
+           bg-secondary text-secondary-foreground;
+  }
+
+  .tag-accent {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 
+           text-sm font-medium rounded-full
+           bg-accent/10 text-accent;
+  }
+
+  /* Divider */
+  .divider {
+    @apply h-px w-full bg-gradient-to-r from-transparent via-border to-transparent;
+  }
+
+  /* Focus states */
+  .focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+}
+
+@layer utilities {
+  /* Gradient text */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-foreground to-muted-foreground;
+  }
+
+  .text-gradient-accent {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-copper);
+  }
+
+  /* Glow effects */
+  .glow-accent {
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* Smooth transitions */
+  .transition-premium {
+    transition: all 0.5s var(--ease-out-expo);
+  }
+
+  /* Glass effect */
+  .glass {
+    @apply bg-background/80 backdrop-blur-xl border border-border/50;
+  }
+
+  /* Hide scrollbar */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
