@@ -32,7 +32,7 @@ const Services = () => {
     <section className="w-full py-24 bg-white">
       <div className="max-w-7xl mx-auto px-6">
         {/* Heading */}
-        <h2 className="text-5xl font-extrabold text-center mb-16 text-gray-900">
+        <h2 className="text-5xl font-semibold text-center mb-16 text-gray-900">
           <span className="bg-gradient-to-r from-orange-500 to-yellow-600 bg-clip-text text-transparent">
             Our Services
           </span>

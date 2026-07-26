@@ -11,6 +11,13 @@ import DigitalPresence from "./pages/DigitalPresence";
 import LoyaltySystems from "./pages/LoyaltySystems";
 import NotFound from "./pages/NotFound";
 import ScrollToTop from "./components/layout/ScrollToTop";
+import BlogsPage from "./pages/superadmin/Blogs";
+import BlogDetailPage from "./pages/BlogDetails";
+import Login from "./pages/superadmin/Login";
+import Dashboard from "./pages/superadmin/Dashboard";
+import CreateBlog from "./pages/superadmin/CreateBlog";
+import ProtectedRoute from "./components/ProtectedRoute";
+import EditBlog from "./pages/superadmin/EditBlog";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +35,38 @@ const App = () => (
             <Route path="/prime-members" element={<PrimeMembers />} />
             <Route path="/digital-presence" element={<DigitalPresence />} />
             <Route path="/loyalty-systems" element={<LoyaltySystems />} />
+            
+  <Route path="/latest-news" element={<BlogsPage />} />
+        <Route path="/tech-trends/:slug" element={<BlogDetailPage />} />
+        
+        {/* Superadmin Auth */}
+        <Route path="/superadmin/login" element={<Login />} />
+        
+        {/* Protected Superadmin Routes */}
+        <Route
+          path="/superadmin/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/superadmin/create"
+          element={
+            <ProtectedRoute>
+              <CreateBlog />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/superadmin/edit/:id"
+          element={
+            <ProtectedRoute>
+              <EditBlog />
+            </ProtectedRoute>
+          }
+        />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

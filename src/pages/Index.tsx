@@ -129,8 +129,7 @@ const Index = () => {
   return (
     <>
  <HeroSection />
- <About />
-<section className="relative py-8 bg-white overflow-hidden">
+ <About /><section className="relative py-8 bg-white overflow-hidden">
   {/* Diagonal mustard stripe background */}
   <div className="absolute inset-0 pointer-events-none">
     <div className="absolute top-0 right-0 w-[60%] h-full bg-[#D4A017]/[0.03] -skew-x-12 origin-top-right" />
@@ -145,13 +144,13 @@ const Index = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.05] text-black"
+          className="text-4xl md:text-5xl font-semibold tracking-tight leading-[1.05] text-black"
         >
           Everything a
           <br />
           Shop Needs
           <br />
-          <span className="text-[#D4A017]">to Scale.</span>
+          <span className="text-[#ee9725]">to Scale.</span>
         </motion.h2>
       </div>
       
@@ -189,7 +188,8 @@ const Index = () => {
             transition={{ duration: 0.8, delay: index * 0.12, ease: [0.22, 1, 0.36, 1] }}
             className={`group relative ${span.col}`}
           >
-            <div className="relative h-full min-h-[420px] overflow-hidden border border-black/10 bg-black">
+            {/* ONLY CHANGE: added rounded-2xl below */}
+            <div className="relative h-full min-h-[420px] overflow-hidden rounded-2xl border border-black/10 bg-black">
               <img
                 src={feature.image}
                 alt={feature.title}
@@ -203,7 +203,7 @@ const Index = () => {
                   <span className="text-6xl md:text-7xl font-black text-white/10 group-hover:text-[#D4A017]/40 transition-colors duration-500">
                     0{index + 1}
                   </span>
-                  <div className="w-12 h-px bg-[#D4A017]" />
+                  <div className="w-12 h-px bg-[#ee9725]" />
                 </div>
 
                 <h3 className={`font-bold text-white mb-3 tracking-tight leading-tight ${isLarge ? 'text-3xl md:text-4xl' : 'text-2xl md:text-3xl'}`}>
@@ -216,7 +216,7 @@ const Index = () => {
               </div>
 
               <div className="absolute top-0 right-0 w-16 h-16 overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4A017] -translate-y-1/2 translate-x-1/2 rotate-45 group-hover:scale-110 transition-transform duration-500" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#ee9725] -translate-y-1/2 translate-x-1/2 rotate-45 group-hover:scale-110 transition-transform duration-500" />
               </div>
             </div>
           </motion.div>
@@ -226,111 +226,79 @@ const Index = () => {
   </div>
 </section>
 
- <section className="relative min-h-[85vh] flex items-start pt-28 -mt-16 bg-[#fafaf9] overflow-hidden">
-      <div className="container mx-auto px-6 flex flex-col lg:flex-row items-center gap-16">
-
-        {/* LEFT SIDE */}
-        <div className="w-full lg:w-1/2 flex justify-center relative">
-          <motion.div
-            animate={controls}
-            initial={{ rotateY: 0 }}
-            style={{
-              transformStyle: "preserve-3d",
-              perspective: 1200,
-            }}
-            className="relative"
-          >
-            {/* Glow */}
-            <div className="absolute inset-0 rounded-[2.5rem] bg-amber-300/30 blur-3xl -z-10" />
-
-            {/* Image */}
-            <motion.img
-              key={currentImage}
-              src={images[currentImage]}
-              alt="Retail Shop System"
-              className="
-                w-[320px] md:w-[420px] lg:w-[480px]
-                rounded-[2.5rem]
-                border-[6px] border-amber-500
-                shadow-xl
-                object-cover
-              "
-              style={{
-                backfaceVisibility: "hidden",
-                WebkitBackfaceVisibility: "hidden",
-              }}
-              animate={{ y: [0, -15, 0] }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          </motion.div>
-        </div>
-
-
-        {/* RIGHT SIDE – Text Content */}
-        <div className="w-full lg:w-1/2">
-
-          {/* Badge */}
-        
-
-          {/* Heading */}
-          <div className="mb-8">
-            <h1 className="text-3xl md:text-5xl font-black text-slate-900 leading-[1.05] tracking-tight">
-              Turn Every Walk-In
-            </h1>
-
-            <div className="relative inline-block mt-3">
-              <span className="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-amber-700">
-                into a Loyal Customer
-              </span>
-              <span className="absolute -bottom-2 left-0 w-1/3 h-[5px] rounded-full bg-amber-500" />
-            </div>
-          </div>
-
-          {/* Description */}
-          <p className="text-slate-600 text-lg md:text-xl max-w-lg mb-10 leading-relaxed font-medium">
-            We bridge the gap between your physical storefront and digital retention.
-            Smart, modern systems built for boutique and retail brands.
-          </p>
-
-          {/* CTA */}
-          <div className="flex flex-wrap gap-5">
-            <button className="bg-amber-600 text-amber-50 px-10 py-4 rounded-full font-extrabold shadow-lg shadow-amber-900/20 hover:bg-amber-950 hover:-translate-y-1 transition-all duration-300">
-              Get Started Now
-            </button>
-
-            <button className="group flex items-center gap-2 px-6 py-4 text-slate-900 font-bold hover:text-amber-900 transition-colors">
-              <span>View Demo</span>
-              <svg
-                className="w-5 h-5 group-hover:translate-x-1 transition-transform"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 8l4 4m0 0l-4 4m4-4H3"
-                />
-              </svg>
-            </button>
-          </div>
-
-        </div>
-      </div>
-
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[90%] h-px bg-gradient-to-r from-transparent via-amber-500/70 to-transparent blur-[0.5px]" />
-    </section>
-
 <AssociateWithUs />
+ <section className="relative min-h-[80vh] flex items-center pt-32 pb-16 bg-[#FDF6E9] overflow-hidden">
+  {/* single soft glow, not a repeating pattern */}
+  <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-orange-400/8 blur-[140px] rounded-full pointer-events-none" />
+
+  <div className="container mx-auto px-6 flex flex-col lg:flex-row items-center gap-16 relative">
+
+    {/* LEFT SIDE — one clean frame, no stacked ornaments */}
+    <div className="w-full lg:w-1/2 flex justify-center">
+      <motion.div
+        animate={controls}
+        initial={{ rotateY: 0 }}
+        style={{ transformStyle: "preserve-3d", perspective: 1200 }}
+        className="relative"
+      >
+        <div className="rounded-md border-2 border-[#2B1B0E] shadow-[8px_8px_0px_0px_rgba(43,27,14,0.1)] overflow-hidden">
+          <motion.img
+            key={currentImage}
+            src={images[currentImage]}
+            alt="Retail Shop System"
+            className="w-[300px] md:w-[400px] lg:w-[440px] object-cover"
+            style={{
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden",
+            }}
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </div>
+
+        {/* one accent only — a single corner tag, not floating over multiple layers */}
+        <div className="absolute -bottom-4 left-6 bg-gradient-to-r from-orange-500 to-yellow-600 text-[#2B1B0E] text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-sm shadow-md">
+          Live in Under a Week
+        </div>
+      </motion.div>
+    </div>
+
+    {/* RIGHT SIDE — calm, uncluttered */}
+    <div className="w-full lg:w-1/2">
+      <span className="inline-block font-mono text-[11px] tracking-[0.18em] uppercase text-[#2B1B0E]/50 mb-4">
+        Customers Delight — Retail Systems
+      </span>
+
+      <h1 className="font-[900] uppercase leading-[1.05] text-[#2B1B0E] text-4xl md:text-5xl tracking-tight mb-2">
+        Turn Every Walk-In
+      </h1>
+      <h1 className="font-[900] uppercase leading-[1.05] text-4xl md:text-5xl tracking-tight bg-gradient-to-r from-orange-500 to-yellow-600 bg-clip-text text-transparent mb-6">
+        Into a Loyal Customer
+      </h1>
+
+      <p className="text-[#2B1B0E]/60 text-lg max-w-lg mb-9 leading-relaxed">
+        We bridge the gap between your physical storefront and digital
+        retention — smart, modern systems built for boutique and retail
+        brands.
+      </p>
+
+      <div className="flex flex-wrap items-center gap-6">
+        <button className="bg-[#2B1B0E] text-[#FDF6E9] px-8 py-3.5 rounded-sm font-bold text-sm uppercase tracking-wide hover:bg-[#ee9725] hover:text-[#2B1B0E] transition-colors duration-300">
+          Get Started Now
+        </button>
+        <button className="text-[#2B1B0E] font-semibold text-sm underline underline-offset-4 decoration-[#2B1B0E]/30 hover:decoration-[#ee9725] transition-colors">
+          See how it works
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
 <WorkProcess />
       {/* Process Section */}
       
-      <NumberSpeaksLouder />
+      <NumberSpeaksLouder 
+      imageSrc='/Images/numbers.jpg' />
       <Testimonial />
 {/* <OwnerBenefits /> */}
       {/* CTA Section */}

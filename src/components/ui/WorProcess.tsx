@@ -15,57 +15,57 @@ const processSteps: Step[] = [
   { icon: CheckCircle, title: "Optimization", desc: "Continuous performance monitoring and long-term support." },
 ];
 
-/* Progressive darkening: Phase 1 lightest → Phase 4 darkest */
+/* Progressive darkening: Phase 1 → Phase 4 (shifted two shades darker from original) */
 const stepStyle = [
   {
     blob: "rounded-[60%_40%_30%_70%/60%_30%_70%_40%]",
-    iconBg: "bg-amber-50",
-    iconColor: "text-amber-500",
-    badgeBorder: "border-amber-300",
-    badgeText: "text-amber-500",
-    phaseText: "text-amber-500",
-    titleText: "text-amber-700",
-    descText: "text-amber-900/60",
-    hoverGlow: "bg-amber-50/40",
-    shadow: "shadow-[0_15px_35px_-15px_rgba(180,83,9,0.25)]",
-  },
-  {
-    blob: "rounded-[30%_70%_70%_30%/30%_30%_70%_70%]",
-    iconBg: "bg-amber-100",
-    iconColor: "text-amber-600",
-    badgeBorder: "border-amber-400",
-    badgeText: "text-amber-600",
-    phaseText: "text-amber-600",
-    titleText: "text-amber-600",
-    descText: "text-amber-900/60",
-    hoverGlow: "bg-amber-100/50",
-    shadow: "shadow-[0_15px_35px_-15px_rgba(200,130,0,0.3)]",
-  },
-  {
-    blob: "rounded-[70%_30%_50%_50%/40%_60%_40%_60%]",
     iconBg: "bg-amber-200",
     iconColor: "text-amber-700",
-    badgeBorder: "border-amber-600",
+    badgeBorder: "border-amber-500",
     badgeText: "text-amber-700",
     phaseText: "text-amber-700",
     titleText: "text-amber-900",
-    descText: "text-amber-900/60",
-    hoverGlow: "bg-amber-200/50",
-    shadow: "shadow-[0_15px_35px_-15px_rgba(210,140,0,0.35)]",
+    descText: "text-amber-900/80",
+    hoverGlow: "bg-amber-300/50",
+    shadow: "shadow-[0_15px_35px_-15px_rgba(146,64,14,0.3)]",
+  },
+  {
+    blob: "rounded-[30%_70%_70%_30%/30%_30%_70%_70%]",
+    iconBg: "bg-amber-300",
+    iconColor: "text-amber-800",
+    badgeBorder: "border-amber-600",
+    badgeText: "text-amber-800",
+    phaseText: "text-amber-800",
+    titleText: "text-amber-800",
+    descText: "text-amber-900/80",
+    hoverGlow: "bg-amber-400/50",
+    shadow: "shadow-[0_15px_35px_-15px_rgba(180,83,9,0.35)]",
+  },
+  {
+    blob: "rounded-[70%_30%_50%_50%/40%_60%_40%_60%]",
+    iconBg: "bg-amber-400",
+    iconColor: "text-amber-900",
+    badgeBorder: "border-amber-800",
+    badgeText: "text-amber-900",
+    phaseText: "text-amber-900",
+    titleText: "text-black",
+    descText: "text-amber-950/80",
+    hoverGlow: "bg-amber-400/50",
+    shadow: "shadow-[0_15px_35px_-15px_rgba(195,90,0,0.4)]",
   },
   {
     blob: "rounded-[40%_60%_60%_40%/60%_40%_60%_40%]",
-    iconBg: "bg-amber-500",
+    iconBg: "bg-amber-700",
     iconColor: "text-white",
     badgeBorder: "border-white",
     badgeText: "text-white",
-    badgeBg: "bg-amber-500",
-    badgeShadow: "shadow-lg shadow-amber-500/30",
-    phaseText: "text-amber-600",
-    titleText: "text-amber-900",
-    descText: "text-amber-900/70",
-    hoverGlow: "bg-amber-300/50",
-    shadow: "shadow-[0_15px_35px_-15px_rgba(180,100,0,0.4)]",
+    badgeBg: "bg-amber-700",
+    badgeShadow: "shadow-lg shadow-amber-700/30",
+    phaseText: "text-amber-800",
+    titleText: "text-black",
+    descText: "text-black/80",
+    hoverGlow: "bg-amber-500/50",
+    shadow: "shadow-[0_15px_35px_-15px_rgba(120,53,15,0.45)]",
   },
 ];
 
@@ -101,7 +101,7 @@ const WorkProcess: React.FC = () => {
       <div className="max-w-7xl mx-auto relative">
         {/* Section Header */}
         <div className="text-center mb-28 max-w-2xl mx-auto">
-          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.05] text-[#1A1A1A]">
+          <h2 className="text-4xl md:text-5xl font-semibold tracking-tight leading-[1.05] text-[#1A1A1A]">
             How We{" "}
             <span className="bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent">
               Work.
@@ -173,7 +173,7 @@ const WorkProcess: React.FC = () => {
                     <span className={`text-[10px] uppercase tracking-[0.2em] ${style.phaseText} font-bold block mb-2`}>
                       Phase {i + 1}
                     </span>
-                    <h3 className={`text-xl font-extrabold tracking-tight ${style.titleText} mb-3`}>
+                    <h3 className={`text-xl font-semibold tracking-tight ${style.titleText} mb-3`}>
                       {title}
                     </h3>
                     <p className={`${style.descText} text-sm leading-relaxed max-w-[240px] mx-auto`}>

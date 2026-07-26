@@ -1,120 +1,247 @@
-import React, { memo } from "react";
-import { motion } from "framer-motion";
-import { Store, Shirt, UtensilsCrossed, Dumbbell, Scissors, Sparkles, Zap } from "lucide-react";
+import React, { memo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  UserX,
+  SearchX,
+  Clock,
+  TrendingDown,
+  MessageSquareDashed,
+  Wallet,
+  Check,
+} from "lucide-react";
 
-const industries = [
-  { name: "Shops & Stores", icon: Store },
-  { name: "Fashion Stores", icon: Shirt },
-  { name: "Restaurants", icon: UtensilsCrossed },
-  { name: "Gyms", icon: Dumbbell },
-  { name: "Beauty Salons", icon: Scissors },
-  { name: "SMEs", icon: Sparkles },
+interface Problem {
+  id: string;
+  title: string;
+  desc: string;
+  icon: React.ElementType;
+  monthlyLoss: number;
+}
+
+const problems: Problem[] = [
+  {
+    id: "vanish",
+    title: "Customers visit once, then vanish",
+    desc: "No reminder, no follow-up — so they forget you exist by the time they need you again.",
+    icon: UserX,
+    monthlyLoss: 6000,
+  },
+  {
+    id: "invisible",
+    title: "You're invisible on local search",
+    desc: "Someone searches \"shop near me\" and finds three competitors before they find you.",
+    icon: SearchX,
+    monthlyLoss: 9000,
+  },
+  {
+    id: "notime",
+    title: "No time left for marketing",
+    desc: "Between billing, stock, and staff, \"posting on Instagram\" is always tomorrow's job.",
+    icon: Clock,
+    monthlyLoss: 4000,
+  },
+  {
+    id: "toolate",
+    title: "You find out too late who stopped coming",
+    desc: "By the time you notice a regular hasn't visited in months, they've already switched to someone else.",
+    icon: TrendingDown,
+    monthlyLoss: 7000,
+  },
+  {
+    id: "noreach",
+    title: "Offers reach nobody",
+    desc: "A sale poster on the counter reaches the five people already inside — not the 500 who used to shop with you.",
+    icon: MessageSquareDashed,
+    monthlyLoss: 5000,
+  },
+  {
+    id: "retainer",
+    title: "Agencies want retainers you can't justify",
+    desc: "Marketing agencies are built for brands with big budgets, not for one shop trying to fill more tables or racks.",
+    icon: Wallet,
+    monthlyLoss: 10000,
+  },
 ];
 
-const ClientAbout: React.FC = () => {
-  return (
-    <section className="bg-[#FAF8F5] py-24 px-6 overflow-hidden">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-16">
-        
+const ClientProblems: React.FC = () => {
+  const [checked, setChecked] = useState<Set<string>>(new Set());
 
+  const toggle = (id: string) => {
+    setChecked((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const totalLoss = problems
+    .filter((p) => checked.has(p.id))
+    .reduce((sum, p) => sum + p.monthlyLoss, 0);
+
+  const count = checked.size;
+
+  return (
+    <section className="bg-white min-h-screen flex items-center px-6 py-6 overflow-hidden">
+      <div className="max-w-6xl mx-auto w-full">
+        {/* Header */}
+        <div className="text-center mb-5">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#1A1A1A] leading-[1.1]"
+            transition={{ duration: 0.6 }}
+            className="text-3xl md:text-4xl font-semibold tracking-tight text-[#1A1A1A] leading-[1.1] max-w-3xl mx-auto"
           >
-            About <span className="text-[#D4A017]">Us</span>
+            Does This Sound Like{" "}
+            <span className="text-[#ee9725]">Your Shop?</span>
           </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            className="mt-2 text-[#cc8110] text-md"
+          >
+            Tap each one that's true for you. Most shop owners check off at
+            least four.
+          </motion.p>
         </div>
 
-        {/* Main Statement */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          className="max-w-4xl mx-auto text-center mb-20"
-        >
-          <p className="text-2xl md:text-3xl font-bold text-[#1A1A1A] leading-snug tracking-tight">
-            At <span className="text-[#D4A017]">Customers Delight</span>, we help local businesses in Faridabad — shops, fashion stores, restaurants, gyms, salons, and SMEs — grow consistently, expand their customer base, and boost sales.
-          </p>
-        </motion.div>
+        {/* Two-column layout: problems left, loss meter right */}
+        <div className="grid lg:grid-cols-[1fr_300px] gap-8 items-center">
 
-        {/* How We Do It */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.15 }}
-          className="bg-white rounded-3xl p-10 md:p-14 shadow-[0_4px_30px_rgba(212,160,23,0.08)] border border-amber-100/50 mb-20 relative overflow-hidden"
-        >
-          <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-amber-400 to-amber-600 rounded-l-3xl" />
-          <div className="absolute -top-20 -right-20 w-64 h-64 bg-amber-50 rounded-full blur-[80px] pointer-events-none" />
-
-          <div className="relative z-10 flex flex-col md:flex-row items-start gap-6 md:gap-10">
-            <div className="shrink-0">
-              <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center">
-                <Zap className="w-6 h-6 text-amber-600" strokeWidth={1.5} />
-              </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-amber-700 uppercase tracking-wider mb-3">
-                How We Do It
-              </h3>
-              <p className="text-stone-600 text-lg leading-relaxed">
-                We do this through <span className="text-[#D4A017] font-bold">strategic planning</span>, <span className="text-[#D4A017] font-bold">smart tech execution</span>, and <span className="text-[#D4A017] font-bold">powerful social media</span> strategies that turn casual visitors into loyal, repeat customers.
-              </p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Industries We Serve */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-        >
-          <div className="flex items-center gap-3 mb-8 justify-center">
-            <div className="w-8 h-px bg-amber-400" />
-            <span className="text-amber-600 font-semibold tracking-[0.2em] uppercase text-[11px]">
-              Industries We Serve
-            </span>
-            <div className="w-8 h-px bg-amber-400" />
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {industries.map((industry, index) => {
-              const Icon = industry.icon;
+          {/* LEFT: Problem checklist grid — 3×2 layout, single frame */}
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+            {problems.map((problem, index) => {
+              const Icon = problem.icon;
+              const isChecked = checked.has(problem.id);
               return (
-                <motion.div
-                  key={industry.name}
-                  initial={{ opacity: 0, y: 20 }}
+                <motion.button
+                  key={problem.id}
+                  type="button"
+                  aria-pressed={isChecked}
+                  onClick={() => toggle(problem.id)}
+                  initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.06 }}
-                  className="group bg-white rounded-2xl p-6 text-center border border-amber-100/60 hover:border-amber-300 hover:shadow-[0_8px_30px_rgba(212,160,23,0.12)] transition-all duration-500 cursor-default"
+                  transition={{ duration: 0.4, delay: index * 0.05 }}
+                  whileTap={{ scale: 0.97 }}
+                  animate={isChecked ? { scale: [1, 1.02, 1] } : {}}
+                  className={`relative text-left rounded-lg p-3 border-2 transition-colors duration-300 ${
+                    isChecked
+                      ? "bg-[#FFF8E7] border-[#ee9725]"
+                      : "bg-white border-[#df8e1e] hover:border-[#ee9725]/50"
+                  }`}
                 >
-                  <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition-colors duration-500">
-                    <Icon
-                      className="w-5 h-5 text-amber-500 group-hover:text-amber-700 transition-colors duration-500"
-                      strokeWidth={1.5}
-                    />
+                  {/* Checkbox */}
+                  <div
+                    className={`absolute top-3 right-3 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors duration-300 ${
+                      isChecked
+                        ? "bg-[#ee9725] border-[#ee9725]"
+                        : "border-[#df8e1e]"
+                    }`}
+                  >
+                    {isChecked && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                   </div>
-                  <span className="text-sm font-bold text-[#1A1A1A] tracking-tight">
-                    {industry.name}
-                  </span>
-                </motion.div>
+
+                  <div className="flex items-center gap-2 mb-2">
+                    <div
+                      className={`w-7 h-7 rounded-md border flex items-center justify-center transition-colors duration-300 ${
+                        isChecked
+                          ? "bg-[#ee9725] border-[#ee9725]"
+                          : "bg-[#FAF8F5] border-[#E8E4DF]"
+                      }`}
+                    >
+                      <Icon
+                        className={`w-3.5 h-3.5 transition-colors duration-300 ${
+                          isChecked ? "text-white" : "text-[#ee9725]"
+                        }`}
+                        strokeWidth={1.5}
+                      />
+                    </div>
+                    <div className="h-px flex-1 bg-[#E8E4DF]" />
+                  </div>
+
+                  <h4 className="text-[18px] font-bold text-[#1A1A1A] tracking-tight mb-1 leading-snug pr-6">
+                    {problem.title}
+                  </h4>
+                  <p className="text-[#6B6B6B] text-[13px] leading-relaxed mb-2">
+                    {problem.desc}
+                  </p>
+                  <p className="font-mono text-[9px] uppercase tracking-widest text-[#ee9725]/80">
+                    ~ ₹{problem.monthlyLoss.toLocaleString("en-IN")}/mo
+                  </p>
+                </motion.button>
               );
             })}
           </div>
+
+          {/* RIGHT: Live loss meter — centered, larger */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="self-center bg-[#1A1A1A] flex flex-col justify-center rounded-2xl px-8 py-10 shadow-[0_12px_40px_rgba(0,0,0,0.18)] border-2 border-dashed border-[#ee9725]/50"
+          >
+            <p className="font-mono text-[15px] uppercase tracking-[0.2em] text-white/50">
+              Problems that match your shop
+            </p>
+            <p className="text-white font-bold text-xl mt-1">
+              {count} <span className="text-white/50 font-normal">of 6</span>
+            </p>
+
+            <div className="h-px w-full bg-white/15 my-5" />
+
+            <p className="font-mono text-[15px] uppercase tracking-[0.2em] text-white/50">
+              Estimated monthly loss
+            </p>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={totalLoss}
+                initial={{ opacity: 0, y: -8, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.3 }}
+                className="text-4xl font-[900] text-[#ee9725] mt-1"
+              >
+                ₹{totalLoss.toLocaleString("en-IN")}
+              </motion.p>
+            </AnimatePresence>
+
+            {count === 0 && (
+              <p className="text-white/40 text-md mt-4">
+                Tap the problems on the left that hit close to home ←
+              </p>
+            )}
+          </motion.div>
+        </div>
+
+        <p className="text-center text-[#1d1c1c] text-[15px] mt-4">
+          *Estimates based on patterns across small retailers — your numbers will vary.
+        </p>
+
+        {/* Bridge line */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="text-center mt-8"
+        >
+          <p className="text-[#1A1A1A] text-base md:text-lg font-semibold max-w-xl mx-auto leading-relaxed">
+            {count > 0
+              ? `That's ₹${totalLoss.toLocaleString("en-IN")} a month walking out the door — and every rupee of it is fixable.`
+              : "Every one of these has a fix."}
+          </p>
+          <p className="mt-2 text-[#6B6B6B] text-sm">
+            That's exactly the gap{" "}
+            <span className="text-[#ee9725] font-bold">Customers Delight</span>{" "}
+            fills.
+          </p>
         </motion.div>
       </div>
     </section>
   );
 };
 
-export default memo(ClientAbout);
+export default memo(ClientProblems);

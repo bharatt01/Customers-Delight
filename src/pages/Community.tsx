@@ -43,24 +43,28 @@ const steps = [
     title: 'Capture Walk-in Customers',
     description: 'Simple sign-up process that takes seconds. QR codes, tablet sign-ups, or staff-assisted registration.',
     details: ['QR code at checkout', 'Staff-assisted sign-up', 'Incentivized registration'],
+    image: '/Images/walking-customer.jpg',
   },
   {
     step: '02',
     title: 'Welcome to the Community',
     description: 'Automated welcome messages that make customers feel valued from day one.',
     details: ['Personalized welcome message', 'Exclusive member benefits', 'Community guidelines'],
+    image: '/Images/community.jpg',
   },
   {
     step: '03',
     title: 'Engage Regularly',
     description: 'Share updates, deals, and valuable content that keeps your community active and engaged.',
     details: ['Weekly deals & offers', 'Behind-the-scenes content', 'Member-only announcements'],
+    image: '/Images/engage.jpg',
   },
   {
     step: '04',
     title: 'Convert to Repeat Buyers',
     description: 'Turn engaged community members into loyal, repeat customers who advocate for your business.',
     details: ['Exclusive discounts', 'Early access to new products', 'Referral rewards'],
+    image: '/Images/convert.jpg',
   },
 ];
 
@@ -123,7 +127,7 @@ const Community = () => {
             >
               <div className="relative bg-gradient-to-br from-card to-secondary rounded-3xl p-8 md:p-12">
                 {/* Phone mockup */}
-                <div className="relative mx-auto w-64 md:w-72">
+                <div className="relative mx-auto w-60 md:w-64">
                   <div className="bg-primary rounded-[2.5rem] p-3 shadow-lg">
                     <div className="bg-card rounded-[2rem] overflow-hidden">
                       {/* Status bar */}
@@ -190,28 +194,81 @@ const Community = () => {
       </section>
 
       {/* Benefits Section */}
-    <section className="section-padding bg-secondary/30 pt-6 md:pt-10 pb-10 md:pb-14">
+   {/* Benefits Section */}
+<section className="section-padding bg-secondary/30 pt-6 md:pt-10 pb-10 md:pb-14 relative overflow-hidden">
 
-        <div className="container-wide">
-          <SectionHeading
-            
-            title="Why Build a Customer Community?"
-            description="A community creates a direct line to your customers, bypassing social media algorithms and building genuine relationships."
-          />
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {benefits.map((benefit, index) => (
-              <FeatureCard
-                key={benefit.title}
-                icon={benefit.icon}
-                title={benefit.title}
-                description={benefit.description}
-                index={index}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
+  {/* faint dot texture so the section isn't a flat block of color */}
+  <div
+    className="absolute inset-0 opacity-40 pointer-events-none"
+    style={{
+      backgroundImage: 'radial-gradient(currentColor 0.6px, transparent 0.6px)',
+      backgroundSize: '20px 20px',
+      color: 'hsl(var(--foreground) / 0.06)',
+      maskImage: 'radial-gradient(ellipse 70% 60% at 50% 0%, black 30%, transparent 85%)',
+    }}
+  />
+
+  <div className="container-wide relative">
+    <SectionHeading
+      title="Why Build a Customer Community?"
+      description="A community creates a direct line to your customers, bypassing social media algorithms and building genuine relationships."
+    />
+
+    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {benefits.map((benefit, index) => {
+        const Icon = benefit.icon;
+        // Warm, distinct hue per card — same family as the chat bubbles above
+        const palettes = [
+          { bg: '#FDEEE1', ring: '#E8792C', text: '#B85A1A' }, // orange
+          { bg: '#FBE9E3', ring: '#B5472B', text: '#8F3620' }, // terracotta
+          { bg: '#F3EBFB', ring: '#8B5CB0', text: '#6B3F8C' }, // plum
+          { bg: '#EEF1E2', ring: '#6B7A3A', text: '#525E2C' }, // moss
+        ];
+        const p = palettes[index % palettes.length];
+
+        return (
+          <motion.div
+            key={benefit.title}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.5, delay: index * 0.08 }}
+            whileHover={{ y: -4 }}
+            className="relative bg-card rounded-2xl border border-border/60 p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
+          >
+            {/* icon bubble, styled like a chat message from the hero mockup */}
+            <div
+              className="relative w-12 h-12 rounded-2xl rounded-tl-sm flex items-center justify-center mb-5"
+              style={{ backgroundColor: p.bg }}
+            >
+              <Icon className="w-5 h-5" style={{ color: p.ring }} strokeWidth={2} />
+            </div>
+
+            <h3 className="font-semibold text-base tracking-tight mb-2 text-foreground">
+              {benefit.title}
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {benefit.description}
+            </p>
+
+            <span
+              className="absolute top-6 right-6 font-mono text-[11px] font-bold opacity-30"
+              style={{ color: p.ring }}
+            >
+              0{index + 1}
+            </span>
+
+            {/* bottom accent line, appears on hover */}
+            <div
+              className="absolute bottom-0 left-6 right-6 h-[2px] scale-x-0 hover:scale-x-100 transition-transform duration-300 origin-left"
+              style={{ backgroundColor: p.ring }}
+            />
+          </motion.div>
+        );
+      })}
+    </div>
+  </div>
+</section>
 
       {/* Process Section */}
   <section className="section-padding py-12 bg-secondary/30">
@@ -252,12 +309,13 @@ const Community = () => {
                 </div>
                 
                 <div className="flex-1 w-full max-w-md">
-                  <div className="bg-gradient-to-br from-card to-secondary rounded-2xl p-8 aspect-square flex items-center justify-center">
-                    {index === 0 && <Smartphone className="w-24 h-24 text-accent/30" />}
-                    {index === 1 && <MessageCircle className="w-24 h-24 text-accent/30" />}
-                    {index === 2 && <Share2 className="w-24 h-24 text-accent/30" />}
-                    {index === 3 && <Heart className="w-24 h-24 text-accent/30" />}
-                  </div>
+                <div className="overflow-hidden rounded-2xl shadow-lg aspect-square">
+  <img
+    src={step.image}
+    alt={step.title}
+    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+  />
+</div>
                 </div>
               </motion.div>
             ))}

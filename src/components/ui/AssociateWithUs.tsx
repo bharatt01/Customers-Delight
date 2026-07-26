@@ -1,5 +1,5 @@
-import React, { memo } from "react";
-import { motion } from "framer-motion";
+import React, { memo, useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { IconType } from "react-icons";
 import {
   FaUsers,
@@ -15,195 +15,216 @@ import {
 interface Point {
   title: string;
   description: string;
+  impact: string;
   icon: IconType;
 }
 
 const points: Point[] = [
-  { title: "Bring More Customers", description: "Scale your daily customer influx through Shoppers Club Faridabad's network.", icon: FaUsers },
-  { title: "Reach Out to All", description: "Implement effective outreach strategies to capture the entire Faridabad market.", icon: FaBullhorn },
-  { title: "Create Loyalty Rewards", description: "Develop high-retention reward systems for sustainable long-term growth.", icon: FaGift },
-  { title: "Strong Digital Presence", description: "Establish brand authority and trust through a cohesive digital footprint.", icon: FaChartLine },
-  { title: "Build Loyal Community", description: "Cultivate a dedicated community of brand advocates and repeat buyers.", icon: FaUsersCog },
-  { title: "Convert Walk-ins", description: "Transform one-time visitors into lifecycle customers for sustained sales.", icon: FaSyncAlt },
-  { title: "Leverage Social Media", description: "Harness Instagram, Facebook, and YouTube to build local brand equity.", icon: FaHashtag },
+  {
+    title: "Bring More Customers",
+    description: "Scale your daily footfall through Shoppers Club Faridabad's network of engaged local buyers.",
+    impact: "More people through the door, every week",
+    icon: FaUsers,
+  },
+  {
+    title: "Reach Out to All",
+    description: "Put your shop in front of the whole Faridabad market, not just the five people already inside.",
+    impact: "Your offers finally reach who they're meant for",
+    icon: FaBullhorn,
+  },
+  {
+    title: "Create Loyalty Rewards",
+    description: "A reward system built for repeat visits, so customers have a reason to choose you again.",
+    impact: "Turns one-time buyers into regulars",
+    icon: FaGift,
+  },
+  {
+    title: "Strong Digital Presence",
+    description: "A cohesive online footprint, so \"shop near me\" search leads to you first, not a competitor.",
+    impact: "Found first, chosen first",
+    icon: FaChartLine,
+  },
+  {
+    title: "Build Loyal Community",
+    description: "Cultivate a base of brand advocates who bring their friends and family along with them.",
+    impact: "Customers who sell your shop for you",
+    icon: FaUsersCog,
+  },
+  {
+    title: "Convert Walk-ins",
+    description: "Turn a single visit into a lifecycle customer, with follow-ups that happen automatically.",
+    impact: "No more customers who vanish after one visit",
+    icon: FaSyncAlt,
+  },
+  {
+    title: "Leverage Social Media",
+    description: "Instagram, Facebook, and YouTube, used to build real local brand equity — not just likes.",
+    impact: "Local reputation that compounds over time",
+    icon: FaHashtag,
+  },
 ];
 
-/* Same rotations and blobs as original */
-const rotations = ["-rotate-1", "rotate-1", "-rotate-1", "rotate-2", "-rotate-1", "rotate-1", "-rotate-2"];
-const blobs = [
-  "rounded-[60%_40%_30%_70%/60%_30%_70%_40%]",
-  "rounded-[30%_70%_70%_30%/30%_30%_70%_70%]",
-  "rounded-[70%_30%_50%_50%/40%_60%_40%_60%]",
-  "rounded-[40%_60%_60%_40%/60%_40%_60%_40%]",
-  "rounded-[60%_40%_30%_70%/60%_30%_70%_40%]",
-  "rounded-[30%_70%_70%_30%/30%_30%_70%_70%]",
-  "rounded-[70%_30%_50%_50%/40%_60%_40%_60%]",
-];
-
-/* Color themes per card — same design, just colored */
-const themes = [
-  { badge: "bg-[#FF8C64]", badgeShadow: "shadow-[#FF8C64]/30", iconBg: "bg-[#FFF0EB]", iconColor: "text-[#E85D3A]", title: "text-[#C44A2C]", desc: "text-[#B07868]", hoverShadow: "hover:shadow-[0_25px_50px_-15px_rgba(255,100,80,0.3)]" },
-  { badge: "bg-[#5B8DEF]", badgeShadow: "shadow-[#5B8DEF]/30", iconBg: "bg-[#EBF0FF]", iconColor: "text-[#3B6FD0]", title: "text-[#2C5AB8]", desc: "text-[#6885B0]", hoverShadow: "hover:shadow-[0_25px_50px_-15px_rgba(91,141,239,0.3)]" },
-  { badge: "bg-[#3CB371]", badgeShadow: "shadow-[#3CB371]/30", iconBg: "bg-[#E8F5EE]", iconColor: "text-[#2A8A5A]", title: "text-[#1E7A4A]", desc: "text-[#5A9A78]", hoverShadow: "hover:shadow-[0_25px_50px_-15px_rgba(60,179,113,0.3)]" },
-  { badge: "bg-[#8B5CF6]", badgeShadow: "shadow-[#8B5CF6]/30", iconBg: "bg-[#F0EBFF]", iconColor: "text-[#6D3FD4]", title: "text-[#5B2CC4]", desc: "text-[#7A68A0]", hoverShadow: "hover:shadow-[0_25px_50px_-15px_rgba(139,92,246,0.3)]" },
-  { badge: "bg-[#E85D8A]", badgeShadow: "shadow-[#E85D8A]/30", iconBg: "bg-[#FFF0F5]", iconColor: "text-[#C43D6A]", title: "text-[#A82C54]", desc: "text-[#B06880]", hoverShadow: "hover:shadow-[0_25px_50px_-15px_rgba(232,93,138,0.3)]" },
-  { badge: "bg-[#20B2AA]", badgeShadow: "shadow-[#20B2AA]/30", iconBg: "bg-[#E8FAF8]", iconColor: "text-[#168B84]", title: "text-[#0E6B64]", desc: "text-[#4A9A94]", hoverShadow: "hover:shadow-[0_25px_50px_-15px_rgba(32,178,170,0.3)]" },
-  { badge: "bg-[#D4A017]", badgeShadow: "shadow-[#D4A017]/30", iconBg: "bg-[#FFF8E8]", iconColor: "text-[#B8860B]", title: "text-[#8B6914]", desc: "text-[#A08040]", hoverShadow: "hover:shadow-[0_25px_50px_-15px_rgba(212,160,23,0.35)]" },
-];
-
-const floatDuration = [4, 5, 4.5, 5.5, 4, 6, 4.5];
-const floatDelay = [0, 0.5, 1, 1.5, 2, 0.8, 1.2];
+const STEP_DURATION = 2000;
 
 const SevenPointCards: React.FC = () => {
+  const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    if (paused) return;
+    const timer = setTimeout(() => {
+      setActive((a) => (a + 1) % points.length);
+    }, STEP_DURATION);
+    return () => clearTimeout(timer);
+  }, [active, paused]);
+
+  const current = points[active];
+  const Icon = current.icon;
+
   return (
-    <section className="relative bg-[#FCFAF8] py-32 px-6 overflow-hidden">
-      {/* Organic background blobs — same as original */}
-      <div className="absolute top-[5%] right-[-8%] w-[420px] h-[420px] bg-amber-100/50 blur-[110px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[10%] left-[-8%] w-[380px] h-[380px] bg-orange-100/40 blur-[100px] rounded-full pointer-events-none" />
-
-      {/* Floating decorative dots — same as original */}
-      <motion.div
-        animate={{ y: [0, -18, 0], rotate: [0, 8, 0] }}
-        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-        className="hidden lg:block absolute top-[18%] left-[6%] w-4 h-4 rounded-full bg-amber-400/40"
-      />
-      <motion.div
-        animate={{ y: [0, 20, 0], rotate: [0, -10, 0] }}
-        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-        className="hidden lg:block absolute top-[55%] right-[10%] w-6 h-6 rounded-full bg-orange-300/30"
-      />
-      <motion.div
-        animate={{ y: [0, -14, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        className="hidden lg:block absolute bottom-[12%] left-[14%] w-3 h-3 rounded-full bg-amber-500/40"
-      />
-
-      <div className="max-w-5xl mx-auto relative">
-        {/* Header — same as original */}
-        <div className="max-w-3xl mb-24 mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.05] text-[#1A1A1A] mb-8">
-            Our 7 Point Formula to{" "}
-            <span className="bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent">
-              Double Your Sale
+    <section className="relative bg-[#FDF6E9] py-28 px-6 overflow-hidden">
+      <div className="max-w-5xl mx-auto">
+        {/* Header — Bold, high-contrast, impossible to skip */}
+        <div className="max-w-3xl mb-16 text-center mx-auto">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.05] text-[#2B1B0E] mb-6">
+            Our Seven-Point Formula for{" "}
+            <span className="relative inline-block">
+              <span className="relative z-10 px-2">2x Your Sales</span>
+              <span className="absolute inset-0 bg-gradient-to-r from-orange-500 to-yellow-600 -skew-x-6 z-0" />
             </span>{" "}
-            in 12 Months
+            in Twelve Months
           </h2>
-          <div className="h-1 w-24 bg-amber-500 mb-8 mx-auto" />
-          <p className="text-stone-600 text-lg leading-relaxed">
-            We are <span className="text-amber-900 font-semibold">Customers Delight</span>. Based in Faridabad, we provide a strategic roadmap to scale your business through data-driven steps.
+          <div className="h-1.5 w-20 bg-[#ee9725] mx-auto mb-6" />
+          <p className="text-[#2B1B0E]/60 text-lg md:text-xl leading-relaxed font-medium">
+            One roadmap, seven steps, tracked and applied — not seven
+            separate things you have to figure out on your own.
           </p>
         </div>
 
-        {/* Winding path — same as original */}
-        <div className="relative">
-          <svg
-            className="hidden md:block absolute left-1/2 top-0 -translate-x-1/2 h-full w-[420px] -z-10"
-            viewBox="0 0 420 1750"
-            fill="none"
-            preserveAspectRatio="none"
-          >
-            <motion.path
-              d="M340,60 C160,140 160,180 80,250 C260,330 260,380 340,470 C160,550 160,600 80,690 C260,770 260,820 340,910 C160,990 160,1040 80,1130 C260,1210 260,1260 340,1350 C160,1430 160,1480 80,1570"
-              stroke="#F59E0B"
-              strokeOpacity="0.35"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeDasharray="2 14"
-              initial={{ pathLength: 0 }}
-              whileInView={{ pathLength: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 2.2, ease: "easeInOut" }}
-            />
-          </svg>
-
-          <div className="flex flex-col gap-16 md:gap-6">
-            {points.map(({ title, description, icon: Icon }, index) => {
-              const isRight = index % 2 === 0;
-              const theme = themes[index];
-              const rotation = rotations[index];
-              const blob = blobs[index];
-
+        {/* Ledger stepper */}
+        <div
+          className="grid md:grid-cols-[280px_1fr] gap-0 border-[3px] border-[#2B1B0E] rounded-xl overflow-hidden shadow-[12px_12px_0px_0px_rgba(43,27,14,0.12)]"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+        >
+          {/* LEFT: numbered ledger list */}
+          <div className="bg-[#2B1B0E] flex md:flex-col overflow-x-auto md:overflow-visible">
+            {points.map((point, index) => {
+              const isActive = index === active;
               return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 40, scale: 0.94 }}
-                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                  viewport={{ once: true, margin: "-80px" }}
-                  transition={{ duration: 0.7, delay: (index % 4) * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                  className={`flex ${isRight ? "md:justify-start" : "md:justify-end"}`}
+                <button
+                  key={point.title}
+                  onClick={() => setActive(index)}
+                  className={`relative shrink-0 md:shrink w-[168px] md:w-auto text-left px-5 py-4 border-b border-white/10 transition-all duration-300 ${
+                    isActive ? "bg-white/10" : "hover:bg-white/[0.05]"
+                  }`}
                 >
-                  <motion.article
-                    animate={{ y: [0, -6, 0] }}
-                    transition={{
-                      duration: floatDuration[index],
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      delay: floatDelay[index],
-                    }}
-                    whileHover={{ rotate: 0, scale: 1.03 }}
-                    className={`group relative w-full md:w-[420px] bg-white ${rotation} rounded-tl-[2.5rem] rounded-br-[2.5rem] rounded-tr-2xl rounded-bl-2xl border border-stone-200/80 p-8 shadow-[0_15px_35px_-15px_rgba(180,83,9,0.15)] transition-shadow duration-500 ${theme.hoverShadow}`}
-                  >
-                    {/* Sticker number — now colored */}
-                    <div
-                      className={`absolute -top-5 ${isRight ? "-left-5" : "-right-5"} w-14 h-14 flex items-center justify-center ${theme.badge} border-2 border-white text-white font-black text-lg rounded-full rotate-6 group-hover:rotate-12 transition-transform duration-500 shadow-lg ${theme.badgeShadow}`}
+                  {/* Orange active indicator bar */}
+                  {isActive && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-orange-500 to-yellow-600" />
+                  )}
+
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`font-mono text-sm font-bold tracking-widest transition-colors duration-300 ${
+                        isActive ? "text-[#ee9725]" : "text-white/40"
+                      }`}
                     >
-                      0{index + 1}
-                    </div>
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span
+                      className={`text-sm font-bold leading-snug transition-colors duration-300 ${
+                        isActive ? "text-white" : "text-white/50"
+                      }`}
+                    >
+                      {point.title}
+                    </span>
+                  </div>
 
-                    <div className="flex items-start gap-5">
-                      {/* Icon blob — now colored */}
-                      <div
-                        className={`shrink-0 w-16 h-16 flex items-center justify-center ${blob} ${theme.iconBg} ${theme.iconColor} transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6`}
-                      >
-                        <Icon className="text-2xl" />
-                      </div>
-
-                      <div>
-                        {/* Title — now colored */}
-                        <h3 className={`font-extrabold tracking-tight ${theme.title} text-xl mb-2 leading-snug`}>
-                          {title}
-                        </h3>
-                        {/* Description — now colored */}
-                        <p className={`${theme.desc} text-sm leading-relaxed`}>
-                          {description}
-                        </p>
-                      </div>
-                    </div>
-                  </motion.article>
-                </motion.div>
+                  {/* Progress fill */}
+                  <div className="mt-3 h-[3px] w-full bg-white/10 rounded-full overflow-hidden">
+                    {isActive && (
+                      <motion.div
+                        key={active}
+                        initial={{ width: "0%" }}
+                        animate={{ width: paused ? undefined : "100%" }}
+                        transition={{ duration: STEP_DURATION / 1000, ease: "linear" }}
+                        className="h-full bg-gradient-to-r from-orange-500 to-yellow-600"
+                      />
+                    )}
+                  </div>
+                </button>
               );
             })}
           </div>
+
+          {/* RIGHT: active point detail */}
+          <div className="relative bg-[#FDF6E9] p-8 md:p-12 min-h-[380px] flex flex-col justify-center overflow-hidden">
+            {/* Giant faded step number in background */}
+            <span className="absolute top-4 right-6 text-[8rem] md:text-[10rem] font-black text-[#2B1B0E]/[0.04] leading-none select-none pointer-events-none">
+              {String(active + 1).padStart(2, "0")}
+            </span>
+
+            <span className="relative z-10 inline-block self-start font-mono text-xs font-bold tracking-[0.2em] text-[#2B1B0E]/40 uppercase mb-6 border-b-2 border-[#ee9725] pb-1">
+              Step {String(active + 1).padStart(2, "0")} / {String(points.length).padStart(2, "0")}
+            </span>
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={active}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -14 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+                className="relative z-10"
+              >
+                <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-orange-500 to-yellow-600 flex items-center justify-center mb-6 shadow-[4px_4px_0px_0px_rgba(43,27,14,0.15)]">
+                  <Icon className="text-2xl text-[#2B1B0E]" />
+                </div>
+
+                <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-[#2B1B0E] mb-4 leading-tight">
+                  {current.title}
+                </h3>
+                
+                <div className="w-16 h-1.5 bg-gradient-to-r from-orange-500 to-yellow-600 mb-5" />
+
+                <p className="text-[#2B1B0E]/70 text-lg md:text-xl leading-relaxed max-w-lg mb-8 font-medium">
+                  {current.description}
+                </p>
+
+                <div className="inline-flex items-center gap-3 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-yellow-600 text-[#2B1B0E] font-bold text-sm uppercase tracking-wider rounded-full shadow-[4px_4px_0px_0px_rgba(43,27,14,0.15)]">
+                  <span className="w-2 h-2 rounded-full bg-[#2B1B0E]" />
+                  {current.impact}
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
 
-        {/* CTA — same organic sticker panel as original */}
-        <motion.div
-          initial={{ opacity: 0, y: 30, scale: 0.95 }}
-          whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
-          className="relative mt-24 mx-auto max-w-2xl"
-        >
-          <div className="relative bg-gradient-to-br from-amber-500 to-orange-600 rounded-[3rem] rounded-tr-xl px-10 py-14 text-center overflow-hidden rotate-1">
-            <motion.div
-              animate={{ rotate: [0, 12, 0] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -top-10 -right-10 w-36 h-36 bg-white/10 rounded-[40%_60%_60%_40%/60%_40%_60%_40%]"
-            />
-            <motion.div
-              animate={{ rotate: [0, -10, 0] }}
-              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -bottom-8 -left-8 w-28 h-28 bg-white/10 rounded-[60%_40%_30%_70%/60%_30%_70%_40%]"
-            />
+        <p className="text-center text-[#2B1B0E]/35 text-sm mt-5 font-medium">
+          Tap any step to jump ahead — or let it run through all seven.
+        </p>
 
-            <h3 className="relative z-10 text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-8 leading-tight">
-              Ready to double your sales?
-            </h3>
-            <button className="relative z-10 inline-flex items-center gap-2 bg-white text-amber-700 hover:bg-amber-50 transition-all font-extrabold uppercase tracking-widest text-xs py-4 px-8 rounded-full group">
-              Let's Talk
-              <FaArrowRight className="text-[10px] group-hover:translate-x-1 transition-transform" />
-            </button>
-          </div>
+        {/* CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="relative mt-16 mx-auto max-w-5xl bg-[#2B1B0E] rounded-xl border-[3px] border-dashed border-[#ee9725]/50 px-10 py-10 text-center"
+        >
+          <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-orange-200/80 mb-3">
+            All 7 points, one roadmap
+          </p>
+
+          <h3 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-6 leading-tight">
+            Ready to double your sales?
+          </h3>
+
+          <button className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500 to-yellow-600 text-[#2B1B0E] font-bold text-base uppercase tracking-wide py-4 px-8 rounded-lg shadow-[6px_6px_0px_0px_rgba(255,255,255,0.15)] hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)] hover:translate-x-1 hover:translate-y-1 transition-all duration-200 group">
+            Let's Talk
+            <FaArrowRight className="text-sm group-hover:translate-x-1 transition-transform" />
+          </button>
         </motion.div>
       </div>
     </section>
