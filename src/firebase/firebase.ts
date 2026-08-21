@@ -2,27 +2,16 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-import { getAnalytics } from "firebase/analytics";
-
 const firebaseConfig = {
-  apiKey: "AIzaSyB1CYt3xxSArcXkv7l04t0e1TvOJoWeUc8",
-  authDomain: "customerdelight-b8134.firebaseapp.com",
-  projectId: "customerdelight-b8134",
-  storageBucket: "customerdelight-b8134.firebasestorage.app",
-  messagingSenderId: "534009887062",
-  appId: "1:534009887062:web:643fa16802081df1a07ef7",
-  measurementId: "G-JXCF4N2761"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-console.log("🔥 Initializing Firebase with config:", {
-  ...firebaseConfig,
-  apiKey: "***hidden***"
-});
-
 const app = initializeApp(firebaseConfig);
-console.log("🔥 Firebase app name:", app.name);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-
-console.log("🔥 Firestore db initialized:", db);

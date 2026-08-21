@@ -1,112 +1,53 @@
 import {
-  collection,
-  addDoc,
-  getDocs,
-  getDoc,
-  doc,
-  deleteDoc,
-  updateDoc,
-  query,
-  orderBy,
-  where,
-  serverTimestamp,
+  collection, doc, addDoc, updateDoc, deleteDoc,
+  getDocs, getDoc, query, orderBy, where, serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
-import { uploadImageToSupabase, deleteImageFromSupabase } from "./imageservice";
-import type { Blog } from "@/types/blog";
+import { Blog } from "@/types/blog";
+import { uploadToCloudinary } from "@/services/cloudinaryService";
 
-// Log Firebase initialization
-console.log("🔥 blogService loaded");
-console.log("🔥 db instance:", db);
-console.log("🔥 db type:", typeof db);
-console.log("🔥 db.app:", (db as any)?.app?.name);
+const blogsCol = collection(db, "blogs");
 
-export async function getBlogs(publishedOnly = false) {
-  let q = query(collection(db, "blogs"), orderBy("createdAt", "desc"));
-  if (publishedOnly) {
-    q = query(
-      collection(db, "blogs"),
-      where("published", "==", true),
-      orderBy("createdAt", "desc")
-    );
-  }
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Blog[];
+export async function getBlogs(): Promise<Blog[]> {
+  const q = query(blogsCol, orderBy("createdAt", "desc"));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Blog));
 }
 
-export async function getBlogBySlug(slug: string) {
-  const q = query(collection(db, "blogs"), where("slug", "==", slug));
-  const snapshot = await getDocs(q);
-  if (snapshot.empty) return null;
-  const doc = snapshot.docs[0];
-  return { id: doc.id, ...doc.data() } as Blog;
+export async function getPublishedBlogs(): Promise<Blog[]> {
+  const q = query(blogsCol, where("published", "==", true), orderBy("createdAt", "desc"));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Blog));
+}
+export async function getBlogBySlug(slug: string): Promise<Blog | null> {
+  const q = query(blogsCol, where("slug", "==", slug), where("published", "==", true));
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  const d = snap.docs[0];
+  return { id: d.id, ...d.data() } as Blog;
+}
+export async function getBlog(id: string): Promise<Blog | null> {
+  const snap = await getDoc(doc(db, "blogs", id));
+  return snap.exists() ? ({ id: snap.id, ...snap.data() } as Blog) : null;
 }
 
-export async function getBlogById(id: string) {
-  const docRef = doc(db, "blogs", id);
-  const docSnap = await getDoc(docRef);
-  if (!docSnap.exists()) return null;
-  return { id: docSnap.id, ...docSnap.data() } as Blog;
+export async function createBlog(data: Partial<Blog>): Promise<string> {
+  const docRef = await addDoc(blogsCol, { ...data, createdAt: serverTimestamp() });
+  return docRef.id;
 }
 
-export async function createBlog(data: Omit<Blog, "id" | "createdAt" | "updatedAt">) {
-  console.log("🔥 createBlog START");
-  console.log("🔥 data received:", data);
-  console.log("🔥 db before addDoc:", db);
-  
-  try {
-    console.log("🔥 Creating collection ref...");
-    const blogsCollection = collection(db, "blogs");
-    console.log("🔥 Collection ref:", blogsCollection);
-    
-    console.log("🔥 Calling addDoc...");
-    const result = await Promise.race([
-      addDoc(blogsCollection, {
-        ...data,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      }),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("Firebase timeout - 10 seconds")), 10000)
-      )
-    ]);
-    
-    console.log("🔥 addDoc SUCCESS:", (result as any).id);
-    return result;
-  } catch (err: any) {
-    console.error("🔥 addDoc FAILED:", err);
-    console.error("🔥 Error code:", err.code);
-    console.error("🔥 Error message:", err.message);
-    throw err;
-  }
+export async function updateBlog(id: string, data: Partial<Blog>): Promise<void> {
+  await updateDoc(doc(db, "blogs", id), { ...data });
 }
 
-export async function deleteBlog(id: string) {
+export async function deleteBlog(id: string): Promise<void> {
   await deleteDoc(doc(db, "blogs", id));
 }
 
-export async function updateBlog(id: string, data: Partial<Blog>) {
-  await updateDoc(doc(db, "blogs", id), {
-    ...data,
-    updatedAt: serverTimestamp(),
-  });
+export async function uploadBlogCover(blogId: string, file: File): Promise<string> {
+  return uploadToCloudinary(file, `blogs/${blogId}`);
 }
 
-export async function uploadBlogImage(file: File): Promise<string> {
-  return await uploadImageToSupabase(file, "blog-images");
-}
-
-export async function deleteBlogImage(url: string): Promise<void> {
-  await deleteImageFromSupabase(url);
-}
-
-export function generateSlug(title: string) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .substring(0, 100);
+export function slugifyTitle(input: string): string {
+  return input.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }

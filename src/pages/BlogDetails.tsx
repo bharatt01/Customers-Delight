@@ -12,7 +12,7 @@ import {
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
-import { getBlogBySlug } from "@/services/blogService";
+import { getBlogBySlug } from "./../services/blogService";
 import { Blog } from "@/types/blog";
 
 export default function BlogDetailPage() {

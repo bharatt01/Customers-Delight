@@ -37,7 +37,7 @@ export const Footer = () => {
             <div className="flex flex-col gap-3 text-sm text-primary-foreground/70">
               <a href="mailto:hello@growthos.com" className="flex items-center gap-2 hover:text-primary-foreground transition-colors">
                 <Mail className="w-4 h-4" />
-                info@customersdelight.com
+              contact.customersdelight@gmail.com
               </a>
               <a href="tel:+1234567890" className="flex items-center gap-2 hover:text-primary-foreground transition-colors">
                 <Phone className="w-4 h-4" />

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
 import { Navigate } from "react-router-dom";
+import { SUPERADMIN_EMAIL } from "@/config/admin";
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null);
@@ -24,6 +25,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   }
 
   if (!user) {
+    user.email !== SUPERADMIN_EMAIL
     return <Navigate to="/superadmin/login" replace />;
   }
 

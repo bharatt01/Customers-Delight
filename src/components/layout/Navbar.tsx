@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ArrowRight } from "lucide-react";
+import { Menu, X, ArrowRight, LogOut, LayoutDashboard } from "lucide-react";
+import { signOut } from "firebase/auth";
+import { auth } from "@/firebase/firebase";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -16,6 +19,8 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, loading } = useAuthUser();
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -28,6 +33,14 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  async function handleLogout() {
+    await signOut(auth);
+    setIsMobileMenuOpen(false);
+    navigate("/");
+  }
+
+  const initial = user?.email?.[0]?.toUpperCase() ?? "?";
 
   return (
     <>
@@ -53,7 +66,7 @@ const Navbar = () => {
             </span>
           </Link>
 
-          {/* DESKTOP NAV — Clean text links */}
+          {/* DESKTOP NAV — Clean text links (untouched) */}
           <div className="hidden lg:flex items-center gap-8">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
@@ -74,14 +87,43 @@ const Navbar = () => {
             })}
           </div>
 
-          {/* CTA — Solid amber */}
-          <Link
-            to="/community"
-            className="hidden lg:flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#ee9725] text-black font-bold text-sm hover:bg-[#F5B74C] transition-all duration-300"
-          >
-            Get Started
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+          {/* AUTH AREA — replaces the old static "Get Started" CTA */}
+          <div className="hidden lg:flex items-center gap-4">
+            {loading ? (
+              <div className="w-24 h-9" /> // reserve space, avoid layout jump
+            ) : user ? (
+              <>
+                <Link
+                  to="/owner/dashboard"
+                  className="flex items-center gap-2 text-[14px] font-semibold text-white/60 hover:text-[#ee9725] transition-colors duration-300"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  Dashboard
+                </Link>
+                <div className="w-px h-6 bg-white/10" />
+                <div className="flex items-center gap-2 pl-1">
+                  <div className="w-8 h-8 rounded-full bg-[#ee9725]/15 border border-[#ee9725]/30 flex items-center justify-center text-[#ee9725] text-xs font-black">
+                    {initial}
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-1.5 text-[14px] font-semibold text-white/60 hover:text-[#ee9725] transition-colors duration-300"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Log Out
+                  </button>
+                </div>
+              </>
+            ) : (
+              <Link
+                to="/owner/login"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#ee9725] text-black font-bold text-sm hover:bg-[#F5B74C] transition-all duration-300"
+              >
+                Shop Owner Login
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            )}
+          </div>
 
           {/* MOBILE TOGGLE */}
           <button
@@ -123,13 +165,40 @@ const Navbar = () => {
                   );
                 })}
 
-                <Link
-                  to="/community"
-                  className="mt-3 flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-[#D4A017] text-black font-bold text-sm"
-                >
-                  Get Started
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
+                <div className="mt-3 pt-3 border-t border-white/10">
+                  {loading ? null : user ? (
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-3 px-4 py-2">
+                        <div className="w-8 h-8 rounded-full bg-[#ee9725]/15 border border-[#ee9725]/30 flex items-center justify-center text-[#ee9725] text-xs font-black">
+                          {initial}
+                        </div>
+                        <span className="text-white/60 text-xs truncate">{user.email}</span>
+                      </div>
+                      <Link
+                        to="/owner/dashboard"
+                        className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/5"
+                      >
+                        <LayoutDashboard className="w-4 h-4" />
+                        Dashboard
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 text-left"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Log Out
+                      </button>
+                    </div>
+                  ) : (
+                    <Link
+                      to="/owner/login"
+                      className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-[#ee9725] text-black font-bold text-sm"
+                    >
+                      Shop Owner Login
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>

@@ -1,83 +1,74 @@
 import { useEffect, useState } from "react";
-import { getBlogs } from "@/services/blogService";
+import { Link } from "react-router-dom";
+import { getPublishedBlogs } from "./../../services/blogService";
 import { Blog } from "@/types/blog";
-import BlogHero from "@/components/blog/BlogHero";
-import FeaturedBlog from "@/components/blog/FeaturedBlog";
-import CategoryFilter from "@/components/blog/CategoryFilter";
-import SearchBar from "@/components/blog/SearchBar";
-import BlogGrid from "@/components/blog/BlogGrid";
-import Newsletter from "@/components/blog/Newsletter";
 
-export default function BlogsPage() {
+export default function Blogs() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [filtered, setFiltered] = useState<Blog[]>([]);
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadBlogs();
+    getPublishedBlogs()
+      .then(setBlogs)
+      .finally(() => setLoading(false));
   }, []);
 
-  async function loadBlogs() {
-    setLoading(true);
-    const data = await getBlogs(true); // published only
-    setBlogs(data as Blog[]);
-    setFiltered(data as Blog[]);
-    setLoading(false);
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-2xl font-black">Loading...</div>
+      </div>
+    );
   }
 
-  // Filter logic
-  useEffect(() => {
-    let result = blogs;
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-6 md:px-8 py-14">
+        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">Latest News</h1>
+        <p className="text-gray-500 text-lg mb-10">Updates, insights, and stories.</p>
 
-    if (activeCategory !== "All") {
-      result = result.filter((b) => b.category === activeCategory);
-    }
-
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (b) =>
-          b.title.toLowerCase().includes(q) ||
-          b.excerpt.toLowerCase().includes(q) ||
-          b.tags?.some((t) => t.toLowerCase().includes(q))
-      );
-    }
-
-    setFiltered(result);
-  }, [activeCategory, searchQuery, blogs]);
-
-  const featured = blogs.find((b) => b.featured) || blogs[0];
-  const categories = ["All", ...new Set(blogs.map((b) => b.category))];
-
- return (
-  <div className="min-h-screen bg-[#FDF6E9]">
-    <BlogHero />
-
-    {featured && <FeaturedBlog blog={featured} />}
-
-    <div className="max-w-7xl mx-auto px-6 py-16">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10 border-b-2 border-[#2B1B0E]/10 pb-8">
-        <CategoryFilter
-          categories={categories}
-          active={activeCategory}
-          onChange={setActiveCategory}
-        />
-        <SearchBar value={searchQuery} onChange={setSearchQuery} />
+        {blogs.length === 0 ? (
+          <div className="text-center py-24">
+            <p className="text-gray-400 text-lg">No posts yet — check back soon.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {blogs.map((blog) => (
+              <Link
+                key={blog.id}
+                to={`/tech-trends/${blog.slug}`}
+                className="group bg-white rounded-3xl border border-black/10 overflow-hidden hover:border-black/30 transition"
+              >
+                <div className="aspect-[4/3] overflow-hidden bg-gray-100">
+                  {blog.coverImage && (
+                    <img
+                      src={blog.coverImage}
+                      alt={blog.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                    />
+                  )}
+                </div>
+                <div className="p-5">
+                  {blog.category && (
+                    <span className="inline-block bg-black text-white text-xs font-bold px-3 py-1 rounded-full mb-3">
+                      {blog.category}
+                    </span>
+                  )}
+                  <h2 className="font-black text-lg leading-snug mb-2">{blog.title}</h2>
+                  {blog.excerpt && (
+                    <p className="text-sm text-gray-500 line-clamp-2">{blog.excerpt}</p>
+                  )}
+                  {blog.createdAt && (
+                    <p className="text-xs text-gray-400 mt-3">
+                      {new Date(blog.createdAt).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
-
-      {loading ? (
-        <div className="text-center py-20">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-[#ee9725] border-t-transparent" />
-          <p className="mt-4 text-[#2B1B0E]/50 font-medium">Loading blogs...</p>
-        </div>
-      ) : (
-        <BlogGrid blogs={filtered} />
-      )}
     </div>
-
-    <Newsletter />
-  </div>
-);
+  );
 }
