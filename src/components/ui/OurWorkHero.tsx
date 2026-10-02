@@ -142,7 +142,7 @@ const HeroSection: React.FC = () => {
 </h1>
 
           <p className="anim-rise-2 mt-4 text-base md:text-lg text-orange-50/85 max-w-md leading-relaxed">
-           Turn your local store/shop into a thriving business with smarter selling, wider reach and consistent consistent growth.
+           Turn your local store/shop into a thriving business with smarter selling, wider reach and consistent growth.
           </p>
 
           <div className="anim-rise-3 mt-6 flex flex-wrap items-center gap-4">

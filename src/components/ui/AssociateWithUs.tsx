@@ -221,10 +221,15 @@ const SevenPointCards: React.FC = () => {
             Ready to double your sales?
           </h3>
 
-          <button className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500 to-yellow-600 text-[#2B1B0E] font-bold text-base uppercase tracking-wide py-4 px-8 rounded-lg shadow-[6px_6px_0px_0px_rgba(255,255,255,0.15)] hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)] hover:translate-x-1 hover:translate-y-1 transition-all duration-200 group">
-            Let's Talk
-            <FaArrowRight className="text-sm group-hover:translate-x-1 transition-transform" />
-          </button>
+         <a
+  href="https://wa.me/919871428686?text=Hi%2C%20I%27d%20like%20to%20know%20more%20about%20Shoppers%20Club%20Faridabad"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500 to-yellow-600 text-[#2B1B0E] font-bold text-base uppercase tracking-wide py-4 px-8 rounded-lg shadow-[6px_6px_0px_0px_rgba(255,255,255,0.15)] hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)] hover:translate-x-1 hover:translate-y-1 transition-all duration-200 group"
+>
+  Let's Talk
+  <FaArrowRight className="text-sm group-hover:translate-x-1 transition-transform" />
+</a>
         </motion.div>
       </div>
     </section>
