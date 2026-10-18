@@ -6,17 +6,17 @@
     RewriteEngine On
     RewriteBase /
 
-    # Serve existing files and directories directly
+    # If the requested file or directory exists, serve it
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # Redirect all other routes to React's entry point
+    # Otherwise, send the request to React
     RewriteRule ^ index.html [L]
 </IfModule>
 
-# Disable directory listing
 Options -Indexes
+
 
 # Security headers
 <IfModule mod_headers.c>
