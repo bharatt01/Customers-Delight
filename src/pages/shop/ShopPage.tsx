@@ -1,18 +1,51 @@
+import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
-import { Phone, MapPin, Navigation, ArrowLeft, MessageCircle } from "lucide-react";
+import {
+  Phone, MapPin, Navigation, ArrowLeft, MessageCircle,
+  Percent, Wallet, Sparkles, Gift, Bell, Star,
+} from "lucide-react";
 import { getShopBySlug, incrementShopViews, normalizePhone } from "./../../services/shopService";
 import { Shop } from "@/types/shop";
+import { getTheme, PerkIcon, ShopTheme } from "./ShopTheme";
+
+const ICONS: Record<PerkIcon, typeof Percent> = {
+  percent: Percent,
+  wallet: Wallet,
+  sparkles: Sparkles,
+  gift: Gift,
+  bell: Bell,
+};
+
+// Scrolling offer strip + WhatsApp button pulse. Both switch off for people who
+// have "reduce motion" enabled.
+const ANIMATIONS = `
+@keyframes shop-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes shop-pulse { 0% { box-shadow: 0 0 0 0 rgba(37,211,102,.6); } 70% { box-shadow: 0 0 0 14px rgba(37,211,102,0); } 100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); } }
+.shop-marquee { animation: shop-marquee 26s linear infinite; }
+.shop-pulse { animation: shop-pulse 2.2s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) { .shop-marquee, .shop-pulse { animation: none; } }
+`;
 
 export default function ShopPage() {
   const { slug } = useParams();
   const [shop, setShop] = useState<Shop | null | undefined>(undefined);
 
+  const theme = getTheme((shop as any)?.theme);
+
   useEffect(() => {
-    if (shop) {
-      incrementShopViews(shop.id).catch(() => {});
-    }
+    const id = `shop-font-${theme.id}`;
+    if (document.getElementById(id)) return;
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href = theme.fontsHref;
+    document.head.appendChild(link);
+  }, [theme.id, theme.fontsHref]);
+
+  useEffect(() => {
+    if (shop) incrementShopViews(shop.id).catch(() => {});
   }, [shop?.id]);
 
   useEffect(() => {
@@ -37,6 +70,8 @@ export default function ShopPage() {
     );
   }
 
+  const c = theme.colors;
+  const hard = theme.cardStyle === "hard";
   const phone = normalizePhone(shop.phone);
   const waRedirectLink = `${window.location.origin}/r/${shop.slug}/whatsapp`;
   const mapQuery = shop.lat && shop.lng ? `${shop.lat},${shop.lng}` : encodeURIComponent(shop.address);
@@ -44,108 +79,154 @@ export default function ShopPage() {
   const directionsHref = `https://www.google.com/maps/dir/?api=1&destination=${mapQuery}`;
   const heroPhoto = shop.coverImage || shop.photos?.[0];
 
+  // Surface cards: soft shadow normally, thick outline + offset shadow on "hard" themes.
+  const cardChrome: CSSProperties = hard
+    ? { border: `2px solid ${c.ink}`, boxShadow: `5px 5px 0 ${c.ink}` }
+    : { border: `1px solid ${c.border}`, boxShadow: "0 10px 30px -18px rgba(0,0,0,0.35)" };
+
+  const waButton = (extra = "") => (
+    <a
+      href={waRedirectLink}
+      target="_blank"
+      rel="noreferrer"
+      className={`shop-pulse flex items-center justify-center gap-2 font-extrabold text-[15px] py-3.5 px-6 text-white hover:brightness-95 transition whitespace-nowrap ${extra}`}
+      style={{ background: "#25D366", borderRadius: theme.radius.button }}
+    >
+      <MessageCircle size={18} /> {theme.cta}
+    </a>
+  );
+
   return (
-    <div className="min-h-screen bg-[#f7f7f5]">
-      {/* Hero */}
-      <div className="relative h-[46vh] min-h-[320px] bg-black overflow-hidden">
-        {heroPhoto && (
-          <img src={heroPhoto} alt={shop.name} className="absolute inset-0 w-full h-full object-cover opacity-80" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/10" />
-        <Link
-          to="/"
-          className="absolute top-6 left-6 flex items-center gap-2 bg-white/90 backdrop-blur px-4 py-2 rounded-full text-sm font-bold hover:bg-white transition z-10"
+    <div
+      className="min-h-screen pb-24 md:pb-0"
+      style={{ background: c.page, color: c.ink, fontFamily: theme.bodyFont }}
+    >
+      <style>{ANIMATIONS}</style>
+
+      <Hero shop={shop} theme={theme} photo={heroPhoto} />
+      <Ticker theme={theme} />
+
+      {/* WhatsApp offer card */}
+      <section className="max-w-5xl mx-auto px-6 md:px-12 mt-10">
+        <div
+          className="relative overflow-hidden"
+          style={{
+            background: c.offerBg,
+            color: c.offerInk,
+            borderRadius: theme.radius.card,
+            boxShadow: hard ? `6px 6px 0 ${c.accent}` : "0 28px 60px -22px rgba(0,0,0,0.5)",
+          }}
         >
-          <ArrowLeft size={16} /> Back
-        </Link>
-        <div className="absolute bottom-0 left-0 right-0 px-6 md:px-12 pb-14">
-          <div className="max-w-5xl mx-auto">
-            {shop.category && (
-              <span className="inline-block bg-white text-black text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full mb-3">
-                {shop.category}
+          {/* soft glow circles for depth */}
+          <span className="absolute -top-16 -right-16 w-56 h-56 rounded-full opacity-25" style={{ background: c.accent }} />
+          <span className="absolute -bottom-20 -left-10 w-48 h-48 rounded-full opacity-10" style={{ background: c.offerInk }} />
+
+          <div className="relative grid md:grid-cols-[1fr_auto] gap-8 items-center p-7 md:p-10">
+            <div>
+              <span
+                className="inline-flex items-center gap-1.5 text-xs font-extrabold px-3 py-1.5 mb-4 -rotate-2"
+                style={{ background: c.accent, color: c.accentInk, borderRadius: "999px" }}
+              >
+                <Star size={12} fill="currentColor" /> {theme.sticker}
               </span>
-            )}
-            <h1 className="text-4xl md:text-6xl font-black text-white leading-none tracking-tight">
-              {shop.name}
-            </h1>
-            {shop.shortDescription && (
-              <p className="text-white/80 text-lg mt-3 max-w-xl">{shop.shortDescription}</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Boarding-pass QR band — the page's signature element, front and center */}
-      <div className="max-w-5xl mx-auto px-6 md:px-12">
-        <div className="relative -mt-10 md:-mt-12 z-10 bg-white rounded-[28px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.35)] border border-black/5 overflow-hidden">
-          <div className="flex flex-col sm:flex-row items-stretch">
-            {/* QR stub */}
-            <div className="flex flex-col items-center justify-center gap-3 px-8 py-8 sm:w-64 shrink-0 bg-black text-white relative">
-              <div className="bg-white p-2.5 rounded-2xl">
-                <QRCodeSVG value={waRedirectLink} size={116} fgColor="#0a0a0a" bgColor="#ffffff" />
-              </div>
-              <span className="text-[11px] font-black uppercase tracking-wider text-white/70 text-center">
-                Scan to chat on WhatsApp
-              </span>
-              {/* perforation notches, horizontal ticket tear */}
-              <div className="hidden sm:block absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#f7f7f5]" />
-            </div>
-
-            {/* dashed tear line */}
-            <div className="hidden sm:block w-0 border-l-2 border-dashed border-black/10 my-6" />
-            <div className="sm:hidden h-0 border-t-2 border-dashed border-black/10 mx-6" />
-
-            {/* Info + actions */}
-            <div className="flex-1 flex flex-col sm:flex-row items-center justify-between gap-6 px-8 py-8">
-              <div className="text-center sm:text-left">
-                <span className="flex items-center justify-center sm:justify-start gap-2 text-xs font-black uppercase tracking-wider text-gray-400 mb-2">
-                  <MessageCircle size={14} className="text-[#25D366]" /> Fastest way to reach us
-                </span>
-                <p className="text-2xl font-black tracking-tight">{shop.name}</p>
-                <p className="text-sm text-gray-500 mt-1">{shop.phone}</p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                <a
-                  href={waRedirectLink}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center justify-center gap-2 bg-[#25D366] text-white font-bold text-sm py-3 px-6 rounded-xl hover:brightness-95 transition whitespace-nowrap"
-                >
-                  <MessageCircle size={16} /> Open WhatsApp
-                </a>
+              <h2
+                className="text-3xl md:text-5xl"
+                style={{ fontFamily: theme.headingFont, ...theme.headingStyle, textTransform: "none", lineHeight: 1.08 }}
+              >
+                {theme.offerTitle}
+              </h2>
+              <p className="mt-3 text-base max-w-lg" style={{ opacity: 0.85 }}>
+                {theme.offerText}
+              </p>
+              <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                {waButton()}
                 <a
                   href={`tel:${phone}`}
-                  className="flex items-center justify-center gap-2 bg-black text-white font-bold text-sm py-3 px-6 rounded-xl hover:bg-gray-800 transition whitespace-nowrap"
+                  className="flex items-center justify-center gap-2 font-bold text-sm py-3.5 px-6 border-2 transition hover:bg-white/10 whitespace-nowrap"
+                  style={{ borderColor: "rgba(255,255,255,0.4)", borderRadius: theme.radius.button }}
                 >
-                  <Phone size={16} /> Call
+                  <Phone size={16} /> Call {shop.phone}
                 </a>
               </div>
             </div>
+
+            <div className="flex md:flex-col items-center gap-4">
+              <div
+                className="p-3 bg-white rotate-3"
+                style={{ borderRadius: "20px", boxShadow: `0 0 0 4px ${c.accent}` }}
+              >
+                <QRCodeSVG value={waRedirectLink} size={124} fgColor="#0a0a0a" bgColor="#ffffff" />
+              </div>
+              <p className="text-xs max-w-[9rem] md:text-center font-semibold" style={{ opacity: 0.8 }}>
+                Scan to open WhatsApp
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Perks — each card has its own colour */}
+      <section className="max-w-5xl mx-auto px-6 md:px-12 mt-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
+          {theme.perks.map((perk, i) => {
+            const Icon = ICONS[perk.icon];
+            const tint = theme.perkTints[i % theme.perkTints.length];
+            return (
+              <div
+                key={perk.title}
+                className="p-4 md:p-5"
+                style={{
+                  background: tint.bg,
+                  color: tint.ink,
+                  borderRadius: theme.radius.card,
+                  ...(hard
+                    ? { border: `2px solid ${c.ink}`, boxShadow: `5px 5px 0 ${c.ink}` }
+                    : { border: `1px solid ${tint.chip}33` }),
+                }}
+              >
+                <span
+                  className="w-11 h-11 flex items-center justify-center mb-3"
+                  style={{ background: tint.chip, color: tint.chipInk, borderRadius: "999px" }}
+                >
+                  <Icon size={19} />
+                </span>
+                <p className="font-extrabold text-[15px] leading-snug">{perk.title}</p>
+                <p className="text-[13px] mt-1 leading-snug" style={{ opacity: 0.8 }}>{perk.text}</p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
       {/* Body */}
-      <div className="max-w-5xl mx-auto px-6 md:px-12 py-14 grid grid-cols-1 md:grid-cols-[1fr_320px] gap-12">
-        {/* Left: description + gallery */}
+      <section className="max-w-5xl mx-auto px-6 md:px-12 py-14 grid grid-cols-1 md:grid-cols-[1fr_320px] gap-12">
         <div>
           {shop.description && (
-            <p className="text-gray-700 text-lg leading-relaxed whitespace-pre-line mb-10">
+            <p
+              className="text-lg leading-relaxed whitespace-pre-line mb-10 max-w-prose pl-5"
+              style={{ borderLeft: `5px solid ${c.accent}`, opacity: 0.9 }}
+            >
               {shop.description}
             </p>
           )}
 
           {shop.photos && shop.photos.length > 0 && (
             <div>
-              <h2 className="text-xs font-black uppercase tracking-wider text-gray-400 mb-4">Photos</h2>
+              <h2
+                className="text-3xl"
+                style={{ fontFamily: theme.headingFont, ...theme.headingStyle, textTransform: "none" }}
+              >
+                {theme.galleryTitle}
+              </h2>
+              <span className="block h-1.5 w-16 mt-2 mb-5 rounded-full" style={{ background: c.heroBg }} />
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {shop.photos.map((url, i) => (
                   <img
                     key={url}
                     src={url}
                     alt={`${shop.name} photo ${i + 1}`}
-                    className="w-full aspect-square object-cover rounded-2xl"
+                    className="w-full aspect-square object-cover"
+                    style={{ borderRadius: theme.radius.card, ...(hard ? { border: `2px solid ${c.ink}` } : {}) }}
                   />
                 ))}
               </div>
@@ -153,34 +234,224 @@ export default function ShopPage() {
           )}
         </div>
 
-        {/* Right: location rail */}
-        <div className="space-y-6">
-          <div className="bg-white border border-black/10 rounded-3xl p-6 space-y-4">
+        <aside className="space-y-5">
+          <div className="p-6 space-y-4" style={{ background: c.surface, borderRadius: theme.radius.card, ...cardChrome }}>
             <div className="flex items-start gap-3">
-              <span className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center shrink-0">
+              <span
+                className="w-10 h-10 flex items-center justify-center shrink-0"
+                style={{ background: c.heroBg, color: c.heroInk, borderRadius: "999px" }}
+              >
                 <MapPin size={16} />
               </span>
-              <p className="text-sm text-gray-700 pt-2 leading-snug">{shop.address}</p>
+              <p className="text-sm pt-2 leading-snug">{shop.address}</p>
             </div>
             <a
               href={directionsHref}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center justify-center gap-2 w-full bg-black text-white font-bold text-sm py-3 rounded-xl hover:bg-gray-800 transition"
+              className="flex items-center justify-center gap-2 w-full font-bold text-sm py-3 hover:opacity-90 transition"
+              style={{ background: c.heroBg, color: c.heroInk, borderRadius: theme.radius.button }}
             >
               <Navigation size={14} /> Get directions
             </a>
           </div>
 
-          <div className="bg-white rounded-3xl overflow-hidden border border-black/10 h-52">
-            <iframe
-              title="Shop location"
-              src={mapEmbedSrc}
-              className="w-full h-full border-0"
-              loading="lazy"
-            />
+          <div className="overflow-hidden h-52" style={{ borderRadius: theme.radius.card, ...cardChrome }}>
+            <iframe title="Shop location" src={mapEmbedSrc} className="w-full h-full border-0" loading="lazy" />
+          </div>
+        </aside>
+      </section>
+
+      {/* Mobile: WhatsApp stays one tap away */}
+      <div
+        className="md:hidden fixed bottom-0 inset-x-0 z-30 p-3 border-t"
+        style={{ background: c.page, borderColor: c.border }}
+      >
+        {waButton("w-full")}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+
+function Ticker({ theme }: { theme: ShopTheme }) {
+  const c = theme.colors;
+  // Two identical halves so the -50% scroll loops without a jump.
+  const half = [...theme.ticker, ...theme.ticker];
+  const items = [...half, ...half];
+  return (
+    <div
+      className="overflow-hidden"
+      style={{
+        background: c.accent,
+        color: c.accentInk,
+        ...(theme.cardStyle === "hard" ? { borderTop: `2px solid ${c.ink}`, borderBottom: `2px solid ${c.ink}` } : {}),
+      }}
+      aria-label={theme.ticker.join(", ")}
+    >
+      <div className="shop-marquee flex w-max" aria-hidden>
+        {items.map((t, i) => (
+          <span key={i} className="flex items-center gap-3 px-5 py-2.5 text-sm font-extrabold whitespace-nowrap">
+            <Sparkles size={14} /> {t}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BackLink() {
+  return (
+    <Link
+      to="/"
+      className="absolute top-5 left-5 md:top-6 md:left-8 flex items-center gap-2 px-4 py-2 text-sm font-bold z-20 backdrop-blur hover:brightness-105 transition"
+      style={{ background: "rgba(255,255,255,0.92)", color: "#111", borderRadius: "999px" }}
+    >
+      <ArrowLeft size={16} /> Back
+    </Link>
+  );
+}
+
+function PatternLayer({ theme }: { theme: ShopTheme }) {
+  return (
+    <div
+      className="absolute inset-0 pointer-events-none"
+      style={{ backgroundImage: theme.pattern.image, backgroundSize: theme.pattern.size }}
+    />
+  );
+}
+
+function Hero({ shop, theme, photo }: { shop: Shop; theme: ShopTheme; photo?: string }) {
+  const c = theme.colors;
+  const title = (
+    <h1
+      className="text-5xl md:text-7xl break-words"
+      style={{ fontFamily: theme.headingFont, lineHeight: 1.02, ...theme.headingStyle }}
+    >
+      {shop.name}
+    </h1>
+  );
+  const category = shop.category && (
+    <span
+      className="inline-block text-sm font-extrabold px-3.5 py-1 mb-4"
+      style={{ background: c.accent, color: c.accentInk, borderRadius: "999px" }}
+    >
+      {shop.category}
+    </span>
+  );
+  const short = shop.shortDescription && (
+    <p className="text-lg mt-4 max-w-md" style={{ opacity: 0.9 }}>{shop.shortDescription}</p>
+  );
+
+  // Modern Bright: photo under a colour wash, name bottom-left
+  if (theme.hero === "overlay") {
+    return (
+      <div className="relative h-[54vh] min-h-[380px] overflow-hidden" style={{ background: c.heroBg, color: c.heroInk }}>
+        {photo && (
+          <img src={photo} alt={shop.name} className="absolute inset-0 w-full h-full object-cover mix-blend-soft-light opacity-90" />
+        )}
+        <PatternLayer theme={theme} />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <BackLink />
+        <div className="absolute bottom-0 inset-x-0 px-6 md:px-12 pb-12">
+          <div className="max-w-5xl mx-auto">
+            {category}
+            {title}
+            {short}
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // Saree: arched photo with a gold offset outline
+  if (theme.hero === "arch") {
+    return (
+      <div className="relative overflow-hidden pt-24 pb-14 px-6 md:px-12" style={{ background: c.heroBg, color: c.heroInk }}>
+        <PatternLayer theme={theme} />
+        <BackLink />
+        <div className="relative max-w-5xl mx-auto grid md:grid-cols-[1.2fr_1fr] gap-10 items-center">
+          <div>
+            {category}
+            {title}
+            {short}
+          </div>
+          <div className="relative mx-auto w-64 md:w-full max-w-xs">
+            <div
+              className="absolute inset-0 translate-x-3 translate-y-3 border-2"
+              style={{ borderColor: c.accent, borderRadius: "999px 999px 24px 24px" }}
+            />
+            <div
+              className="relative aspect-[4/5] overflow-hidden"
+              style={{ borderRadius: "999px 999px 24px 24px", background: "rgba(255,255,255,0.12)" }}
+            >
+              {photo && <img src={photo} alt={shop.name} className="w-full h-full object-cover" />}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Shoes: stripes, giant italic name, slanted photo
+  if (theme.hero === "slant") {
+    return (
+      <div className="relative overflow-hidden pt-24 pb-14 px-6 md:px-12" style={{ background: c.heroBg, color: c.heroInk }}>
+        <PatternLayer theme={theme} />
+        <BackLink />
+        <div className="relative max-w-5xl mx-auto grid md:grid-cols-[1.1fr_1fr] gap-8 items-center">
+          <div>
+            <span
+              className="inline-block text-sm font-extrabold px-3 py-1 mb-4 -rotate-2"
+              style={{ background: c.heroInk, color: c.accent, borderRadius: "6px" }}
+            >
+              {shop.category || "Footwear"}
+            </span>
+            <h1
+              className="text-6xl md:text-8xl break-words"
+              style={{ fontFamily: theme.headingFont, ...theme.headingStyle }}
+            >
+              {shop.name}
+            </h1>
+            {shop.shortDescription && (
+              <p className="text-lg mt-5 max-w-sm font-bold">{shop.shortDescription}</p>
+            )}
+          </div>
+          <div className="relative">
+            <div
+              className="absolute inset-0 translate-x-3 translate-y-3"
+              style={{ background: c.heroInk, clipPath: "polygon(14% 0, 100% 0, 100% 100%, 0 100%)" }}
+            />
+            <div
+              className="relative h-64 md:h-96 bg-white/40"
+              style={{ clipPath: "polygon(14% 0, 100% 0, 100% 100%, 0 100%)" }}
+            >
+              {photo && <img src={photo} alt={shop.name} className="w-full h-full object-cover" />}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Jewellery: sparkle texture, oval photo with gold ring
+  return (
+    <div className="relative overflow-hidden pt-24 pb-14 px-6 text-center" style={{ background: c.heroBg, color: c.heroInk }}>
+      <PatternLayer theme={theme} />
+      <BackLink />
+      <div className="relative max-w-2xl mx-auto flex flex-col items-center">
+        <div
+          className="w-44 h-56 md:w-52 md:h-64 mb-8 p-1.5 border-2"
+          style={{ borderColor: c.accent, borderRadius: "50%", boxShadow: `0 0 0 8px rgba(224,184,101,0.18)` }}
+        >
+          <div className="w-full h-full overflow-hidden bg-white/10" style={{ borderRadius: "50%" }}>
+            {photo && <img src={photo} alt={shop.name} className="w-full h-full object-cover" />}
+          </div>
+        </div>
+        {category}
+        {title}
+        {short}
       </div>
     </div>
   );

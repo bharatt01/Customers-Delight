@@ -6,12 +6,15 @@ import {
 } from "./../../services/shopService";
 import { createOwnerAccount, sendOwnerPasswordReset } from "./../../services/ownerAuthService";
 import { Shop } from "@/types/shop";
+import ThemePicker from "../shop/ThemePicker";
+import type { ThemeId } from "../shop/ShopTheme";
 
 const emptyForm = {
   name: "", slug: "", category: "", description: "", shortDescription: "",
   phone: "", address: "", lat: undefined as number | undefined, lng: undefined as number | undefined,
   photos: [] as string[], published: false,
   ownerEmail: "",
+  theme: "classic" as ThemeId, // NEW: which page design this shop uses
 };
 
 export default function ShopForm() {
@@ -37,7 +40,8 @@ export default function ShopForm() {
     if (!isEdit || !id) return;
     getShop(id).then((shop) => {
       if (shop) {
-        setForm({ ...emptyForm, ...shop });
+        // Shops created before themes existed have no `theme` — fall back to classic.
+        setForm({ ...emptyForm, ...shop, theme: ((shop as any).theme as ThemeId) || "classic" });
         setOriginalOwnerEmail((shop as any).ownerEmail ?? "");
       }
       setLoading(false);
@@ -96,7 +100,7 @@ export default function ShopForm() {
     try {
       let shopId = id;
       const payload: Partial<Shop> = {
-        ...form,
+        ...form, // includes `theme`
         ownerEmail: trimmedOwnerEmail,
         coverImage: form.photos[0],
       } as Partial<Shop>;
@@ -205,6 +209,9 @@ export default function ShopForm() {
               <p className="text-xs text-gray-400 mt-1">Country code + number, digits only. Used for the QR code.</p>
             </div>
           </div>
+
+          {/* NEW: page design */}
+          <ThemePicker value={form.theme} onChange={(t) => update("theme", t)} />
 
           <div>
             <label className="block font-bold text-sm mb-2">Short description</label>

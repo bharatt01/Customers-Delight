@@ -1,3 +1,7 @@
+import type { ThemeId } from "@/pages/shop/ShopTheme";
+
+// inside interface Shop
+
 export interface Shop {
   id: string;
   name: string;
@@ -18,7 +22,7 @@ export interface Shop {
   address?: string;
   lat?: number;
   lng?: number;
-
+theme?: ThemeId;
   viewCount?: number;
 whatsappClicks?: number;
   published: boolean;
