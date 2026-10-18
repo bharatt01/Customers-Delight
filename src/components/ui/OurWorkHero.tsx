@@ -27,7 +27,7 @@ const HeroSection: React.FC = () => {
 
   const cards = [
     {
-      label: "Avg. Revenue Growth",
+      label: "Avg. Revenue Growthh",
       value: `+${growth}%`,
       sub: "in first 90 days",
       bg: "bg-[#FDF6E9]",
