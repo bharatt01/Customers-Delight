@@ -2,18 +2,18 @@
 # CustomerDelight - Apache Configuration
 
 # Enable URL rewriting
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
 
-    # If the requested file or directory exists, serve it
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # Otherwise, send the request to React
     RewriteRule ^ index.html [L]
 </IfModule>
+
 
 Options -Indexes
 
