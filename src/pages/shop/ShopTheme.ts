@@ -21,6 +21,16 @@ export interface PerkTint {
   chipInk: string; // icon colour
 }
 
+export interface HeroImage {
+  // The shop-front photo is a wide, full-width frame. Heights use clamp()/svh so the
+  // whole frame always fits on one screen (no scrolling to see the photo).
+  height: string; // frame height on mobile
+  heightMd: string; // frame height on desktop (md and up)
+  // "contain" always shows the whole photo (a blurred copy fills spare space);
+  // "cover" fills the frame and may crop the edges.
+  fit: "cover" | "contain";
+}
+
 export interface ShopTheme {
   id: ThemeId;
   label: string;
@@ -30,6 +40,7 @@ export interface ShopTheme {
   bodyFont: string;
   headingStyle: CSSProperties;
   hero: HeroLayout;
+  heroImage: HeroImage; // size of the banner image inside the hero
   cardStyle: CardStyle;
   perkStyle: "cards" | "lines";
   radius: { card: string; button: string };
@@ -58,8 +69,7 @@ export interface ShopTheme {
 }
 
 export const SHOP_THEMES: Record<ThemeId, ShopTheme> = {
-  /* ---------------- Modern Bright (default, works for any shop) --------------- */
-    /* ---------------- Modern Navy (default, works for any shop) --------------- */
+  /* ---------------- Modern Navy (default, works for any shop) --------------- */
   classic: {
     id: "classic",
     label: "Modern Navy",
@@ -70,6 +80,7 @@ export const SHOP_THEMES: Record<ThemeId, ShopTheme> = {
     bodyFont: "'Manrope', system-ui, sans-serif",
     headingStyle: { fontWeight: 800, letterSpacing: "-0.035em" },
     hero: "overlay",
+    heroImage: { height: "clamp(280px, 46svh, 400px)", heightMd: "clamp(340px, calc(100svh - 230px), 540px)", fit: "contain" },
     cardStyle: "soft",
     radius: { card: "20px", button: "12px" },
     pattern: {
@@ -111,6 +122,7 @@ export const SHOP_THEMES: Record<ThemeId, ShopTheme> = {
       { icon: "gift", title: "And much more", text: "Festive surprises, gifts and member-only offers." },
     ],
   },
+
   /* ------------------------------- Saree & Ethnic ------------------------------ */
   saree: {
     id: "saree",
@@ -122,6 +134,7 @@ export const SHOP_THEMES: Record<ThemeId, ShopTheme> = {
     bodyFont: "'Mulish', system-ui, sans-serif",
     headingStyle: { fontWeight: 700, letterSpacing: "-0.01em", fontStyle: "italic" },
     hero: "arch",
+    heroImage: { height: "clamp(280px, 46svh, 400px)", heightMd: "clamp(340px, calc(100svh - 230px), 540px)", fit: "contain" },
     cardStyle: "soft",
     radius: { card: "24px", button: "999px" },
     pattern: {
@@ -181,6 +194,7 @@ export const SHOP_THEMES: Record<ThemeId, ShopTheme> = {
       lineHeight: 0.9,
     },
     hero: "slant",
+    heroImage: { height: "clamp(280px, 46svh, 400px)", heightMd: "clamp(340px, calc(100svh - 230px), 540px)", fit: "contain" },
     cardStyle: "hard",
     radius: { card: "14px", button: "10px" },
     pattern: {
@@ -232,6 +246,7 @@ export const SHOP_THEMES: Record<ThemeId, ShopTheme> = {
     bodyFont: "'Jost', system-ui, sans-serif",
     headingStyle: { fontWeight: 400, letterSpacing: "0.02em" },
     hero: "centered",
+    heroImage: { height: "clamp(280px, 46svh, 400px)", heightMd: "clamp(340px, calc(100svh - 230px), 540px)", fit: "contain" },
     cardStyle: "soft",
     radius: { card: "18px", button: "12px" },
     pattern: {

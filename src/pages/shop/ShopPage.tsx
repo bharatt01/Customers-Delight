@@ -1,10 +1,11 @@
 import type { CSSProperties } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import {
   Phone, MapPin, Navigation, ArrowLeft, MessageCircle,
   Percent, Wallet, Sparkles, Gift, Bell, Star,
+  ZoomIn, X, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { getShopBySlug, incrementShopViews, normalizePhone } from "./../../services/shopService";
 import { Shop } from "@/types/shop";
@@ -20,17 +21,21 @@ const ICONS: Record<PerkIcon, typeof Percent> = {
 
 // Scrolling offer strip + WhatsApp button pulse. Both switch off for people who
 // have "reduce motion" enabled.
+// .hero-img takes its height from the theme (--hero-h on mobile, --hero-h-md from md up).
 const ANIMATIONS = `
 @keyframes shop-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes shop-pulse { 0% { box-shadow: 0 0 0 0 rgba(37,211,102,.6); } 70% { box-shadow: 0 0 0 14px rgba(37,211,102,0); } 100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); } }
 .shop-marquee { animation: shop-marquee 26s linear infinite; }
 .shop-pulse { animation: shop-pulse 2.2s ease-out infinite; }
+.hero-img { height: var(--hero-h); }
+@media (min-width: 768px) { .hero-img { height: var(--hero-h-md); } }
 @media (prefers-reduced-motion: reduce) { .shop-marquee, .shop-pulse { animation: none; } }
 `;
 
 export default function ShopPage() {
   const { slug } = useParams();
   const [shop, setShop] = useState<Shop | null | undefined>(undefined);
+  const [lightbox, setLightbox] = useState<number | null>(null); // index in allPhotos
 
   const theme = getTheme((shop as any)?.theme);
 
@@ -78,6 +83,13 @@ export default function ShopPage() {
   const mapEmbedSrc = `https://www.google.com/maps?q=${mapQuery}&z=15&output=embed`;
   const directionsHref = `https://www.google.com/maps/dir/?api=1&destination=${mapQuery}`;
   const heroPhoto = shop.coverImage || shop.photos?.[0];
+  // Everything the viewer can step through: shop-front photo first, then the gallery.
+  const allPhotos = Array.from(new Set([heroPhoto, ...(shop.photos ?? [])].filter(Boolean) as string[]));
+  const openPhoto = (url?: string) => {
+    if (!url) return;
+    const i = allPhotos.indexOf(url);
+    if (i >= 0) setLightbox(i);
+  };
 
   // Surface cards: soft shadow normally, thick outline + offset shadow on "hard" themes.
   const cardChrome: CSSProperties = hard
@@ -103,7 +115,7 @@ export default function ShopPage() {
     >
       <style>{ANIMATIONS}</style>
 
-      <Hero shop={shop} theme={theme} photo={heroPhoto} />
+      <Hero shop={shop} theme={theme} photo={heroPhoto} onOpen={() => openPhoto(heroPhoto)} />
       <Ticker theme={theme} />
 
       {/* WhatsApp offer card */}
@@ -152,7 +164,7 @@ export default function ShopPage() {
 
             <div className="flex md:flex-col items-center gap-4">
               <div
-                className="p-3 bg-white rotate-3"
+                className="p-3 bg-white"
                 style={{ borderRadius: "20px", boxShadow: `0 0 0 4px ${c.accent}` }}
               >
                 <QRCodeSVG value={waRedirectLink} size={124} fgColor="#0a0a0a" bgColor="#ffffff" />
@@ -221,13 +233,28 @@ export default function ShopPage() {
               <span className="block h-1.5 w-16 mt-2 mb-5 rounded-full" style={{ background: c.heroBg }} />
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {shop.photos.map((url, i) => (
-                  <img
+                  <button
                     key={url}
-                    src={url}
-                    alt={`${shop.name} photo ${i + 1}`}
-                    className="w-full aspect-square object-cover"
+                    type="button"
+                    onClick={() => openPhoto(url)}
+                    aria-label={`View ${shop.name} photo ${i + 1} larger`}
+                    className="group relative block w-full aspect-square overflow-hidden cursor-zoom-in focus:outline-none focus-visible:ring-4"
                     style={{ borderRadius: theme.radius.card, ...(hard ? { border: `2px solid ${c.ink}` } : {}) }}
-                  />
+                  >
+                    <img
+                      src={url}
+                      alt={`${shop.name} photo ${i + 1}`}
+                      loading="lazy"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <span className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
+                    <span
+                      className="absolute bottom-2 right-2 w-9 h-9 flex items-center justify-center rounded-full bg-white/90 text-black shadow opacity-90 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                      aria-hidden
+                    >
+                      <ZoomIn size={16} />
+                    </span>
+                  </button>
                 ))}
               </div>
             </div>
@@ -269,6 +296,16 @@ export default function ShopPage() {
       >
         {waButton("w-full")}
       </div>
+
+      {lightbox !== null && (
+        <Lightbox
+          images={allPhotos}
+          index={lightbox}
+          name={shop.name}
+          onChange={setLightbox}
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </div>
   );
 }
@@ -322,136 +359,244 @@ function PatternLayer({ theme }: { theme: ShopTheme }) {
   );
 }
 
-function Hero({ shop, theme, photo }: { shop: Shop; theme: ShopTheme; photo?: string }) {
+/* Full-screen photo viewer: tap a photo to enlarge. Esc closes, arrow keys / swipe / buttons move. */
+function Lightbox({
+  images, index, name, onChange, onClose,
+}: {
+  images: string[];
+  index: number;
+  name: string;
+  onChange: (i: number) => void;
+  onClose: () => void;
+}) {
+  const touchX = useRef<number | null>(null);
+  const count = images.length;
+  const prev = () => onChange((index - 1 + count) % count);
+  const next = () => onChange((index + 1) % count);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") onChange((index - 1 + count) % count);
+      if (e.key === "ArrowRight") onChange((index + 1) % count);
+    };
+    window.addEventListener("keydown", onKey);
+    const old = document.body.style.overflow;
+    document.body.style.overflow = "hidden"; // page behind doesn't scroll
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = old;
+    };
+  }, [index, count, onChange, onClose]);
+
+  const btn =
+    "absolute z-10 w-11 h-11 flex items-center justify-center rounded-full bg-white/15 hover:bg-white/30 text-white backdrop-blur transition";
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${name} photos`}
+      onClick={onClose}
+      onTouchStart={(e) => { touchX.current = e.touches[0].clientX; }}
+      onTouchEnd={(e) => {
+        if (touchX.current === null || count < 2) return;
+        const dx = e.changedTouches[0].clientX - touchX.current;
+        touchX.current = null;
+        if (Math.abs(dx) > 50) (dx > 0 ? prev : next)();
+      }}
+    >
+      <button type="button" aria-label="Close" className={`${btn} top-4 right-4`} onClick={(e) => { e.stopPropagation(); onClose(); }}>
+        <X size={20} />
+      </button>
+      {count > 1 && (
+        <span className="absolute top-5 left-5 z-10 text-sm font-bold text-white/80">
+          {index + 1} / {count}
+        </span>
+      )}
+
+      {count > 1 && (
+        <>
+          <button type="button" aria-label="Previous photo" className={`${btn} left-3 md:left-6 top-1/2 -translate-y-1/2`} onClick={(e) => { e.stopPropagation(); prev(); }}>
+            <ChevronLeft size={22} />
+          </button>
+          <button type="button" aria-label="Next photo" className={`${btn} right-3 md:right-6 top-1/2 -translate-y-1/2`} onClick={(e) => { e.stopPropagation(); next(); }}>
+            <ChevronRight size={22} />
+          </button>
+        </>
+      )}
+
+      <img
+        src={images[index]}
+        alt={`${name} photo ${index + 1}`}
+        className="max-w-[92vw] max-h-[78vh] md:max-h-[84vh] object-contain rounded-lg shadow-2xl select-none"
+        onClick={(e) => e.stopPropagation()}
+        draggable={false}
+      />
+
+      {count > 1 && (
+        <div
+          className="absolute bottom-4 inset-x-0 flex justify-center gap-2 px-4 overflow-x-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {images.map((u, i) => (
+            <button
+              key={u}
+              type="button"
+              aria-label={`Show photo ${i + 1}`}
+              onClick={() => onChange(i)}
+              className="shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-md overflow-hidden transition"
+              style={{ outline: i === index ? "2px solid #fff" : "2px solid transparent", opacity: i === index ? 1 : 0.55 }}
+            >
+              <img src={u} alt="" className="w-full h-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* Photo that fills its frame. With fit="contain" the whole picture is always visible:
+   a blurred copy fills any spare space so it never looks like empty bars. */
+function HeroPhoto({ photo, alt, fit }: { photo?: string; alt: string; fit: "cover" | "contain" }) {
+  if (!photo) return null;
+  return (
+    <>
+      {fit === "contain" && (
+        <img
+          src={photo}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-70"
+        />
+      )}
+      <img
+        src={photo}
+        alt={alt}
+        className="relative w-full h-full"
+        style={{ objectFit: fit, objectPosition: "center" }}
+      />
+    </>
+  );
+}
+
+/* Hero: the shop-front photo is the star. One wide framed photo, name written over a soft
+   shadow at its bottom edge. The frame shape changes per theme; tapping it opens the viewer. */
+function Hero({
+  shop, theme, photo, onOpen,
+}: {
+  shop: Shop;
+  theme: ShopTheme;
+  photo?: string;
+  onOpen: () => void;
+}) {
   const c = theme.colors;
-  const title = (
-    <h1
-      className="text-5xl md:text-7xl break-words"
-      style={{ fontFamily: theme.headingFont, lineHeight: 1.02, ...theme.headingStyle }}
-    >
-      {shop.name}
-    </h1>
-  );
-  const category = shop.category && (
-    <span
-      className="inline-block text-sm font-extrabold px-3.5 py-1 mb-4"
-      style={{ background: c.accent, color: c.accentInk, borderRadius: "999px" }}
-    >
-      {shop.category}
-    </span>
-  );
-  const short = shop.shortDescription && (
-    <p className="text-lg mt-4 max-w-md" style={{ opacity: 0.9 }}>{shop.shortDescription}</p>
-  );
+  const fit = theme.heroImage.fit;
+  const variant = theme.hero;
+  const centered = variant === "centered";
 
-  // Modern Bright: photo under a colour wash, name bottom-left
-  if (theme.hero === "overlay") {
-    return (
-      <div className="relative h-[54vh] min-h-[380px] overflow-hidden" style={{ background: c.heroBg, color: c.heroInk }}>
-        {photo && (
-          <img src={photo} alt={shop.name} className="absolute inset-0 w-full h-full object-cover mix-blend-soft-light opacity-90" />
+  const sizeVars = {
+    "--hero-h": theme.heroImage.height,
+    "--hero-h-md": theme.heroImage.heightMd,
+  } as CSSProperties;
+
+  // Frame look per theme
+  let frame: CSSProperties;
+  if (variant === "arch") {
+    frame = { borderRadius: "240px 240px 28px 28px", boxShadow: "0 30px 60px -25px rgba(0,0,0,0.6)" };
+  } else if (variant === "slant") {
+    frame = { borderRadius: theme.radius.card, border: `3px solid ${c.ink}`, boxShadow: `10px 10px 0 ${c.ink}` };
+  } else if (variant === "centered") {
+    frame = {
+      borderRadius: "22px",
+      border: `2px solid ${c.accent}`,
+      boxShadow: "0 0 0 8px rgba(224,184,101,0.18), 0 30px 60px -25px rgba(0,0,0,0.6)",
+    };
+  } else {
+    frame = {
+      borderRadius: theme.radius.card,
+      border: "1px solid rgba(255,255,255,0.25)",
+      boxShadow: "0 30px 60px -25px rgba(0,0,0,0.7)",
+    };
+  }
+
+  return (
+    <div
+      className="relative overflow-hidden pt-20 pb-8 md:pt-24 md:pb-10 px-4 md:px-12"
+      style={{ background: c.heroBg, color: c.heroInk }}
+    >
+      <PatternLayer theme={theme} />
+      <BackLink />
+
+      <div className="relative max-w-5xl mx-auto">
+        {/* decorative layer behind the frame */}
+        {variant === "arch" && (
+          <div
+            className="absolute inset-0 translate-x-3 translate-y-3 border-2"
+            style={{ borderColor: c.accent, borderRadius: "240px 240px 28px 28px" }}
+          />
         )}
-        <PatternLayer theme={theme} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        <BackLink />
-        <div className="absolute bottom-0 inset-x-0 px-6 md:px-12 pb-12">
-          <div className="max-w-5xl mx-auto">
-            {category}
-            {title}
-            {short}
-          </div>
-        </div>
-      </div>
-    );
-  }
+        {variant === "overlay" && (
+          <div className="absolute -inset-3 opacity-40 blur-2xl" style={{ background: c.accent, borderRadius: "32px" }} />
+        )}
 
-  // Saree: arched photo with a gold offset outline
-  if (theme.hero === "arch") {
-    return (
-      <div className="relative overflow-hidden pt-24 pb-14 px-6 md:px-12" style={{ background: c.heroBg, color: c.heroInk }}>
-        <PatternLayer theme={theme} />
-        <BackLink />
-        <div className="relative max-w-5xl mx-auto grid md:grid-cols-[1.2fr_1fr] gap-10 items-center">
-          <div>
-            {category}
-            {title}
-            {short}
-          </div>
-          <div className="relative mx-auto w-64 md:w-full max-w-xs">
-            <div
-              className="absolute inset-0 translate-x-3 translate-y-3 border-2"
-              style={{ borderColor: c.accent, borderRadius: "999px 999px 24px 24px" }}
-            />
-            <div
-              className="relative aspect-[4/5] overflow-hidden"
-              style={{ borderRadius: "999px 999px 24px 24px", background: "rgba(255,255,255,0.12)" }}
-            >
-              {photo && <img src={photo} alt={shop.name} className="w-full h-full object-cover" />}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label={`View ${shop.name} photo larger`}
+          onClick={onOpen}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(); } }}
+          className="hero-img group relative w-full overflow-hidden cursor-zoom-in"
+          style={{ ...sizeVars, ...frame, background: "rgba(255,255,255,0.1)" }}
+        >
+          <HeroPhoto photo={photo} alt={shop.name} fit={fit} />
 
-  // Shoes: stripes, giant italic name, slanted photo
-  if (theme.hero === "slant") {
-    return (
-      <div className="relative overflow-hidden pt-24 pb-14 px-6 md:px-12" style={{ background: c.heroBg, color: c.heroInk }}>
-        <PatternLayer theme={theme} />
-        <BackLink />
-        <div className="relative max-w-5xl mx-auto grid md:grid-cols-[1.1fr_1fr] gap-8 items-center">
-          <div>
-            <span
-              className="inline-block text-sm font-extrabold px-3 py-1 mb-4 -rotate-2"
-              style={{ background: c.heroInk, color: c.accent, borderRadius: "6px" }}
-            >
-              {shop.category || "Footwear"}
-            </span>
+          {/* soft shadow so the name is readable on any photo */}
+          <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/75 via-black/30 to-transparent pointer-events-none" />
+
+          {/* "View larger" hint */}
+          <span
+            className="absolute top-3 right-3 md:top-4 md:right-5 flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold shadow transition group-hover:scale-105"
+            style={{ background: "rgba(255,255,255,0.92)", color: "#111", borderRadius: "999px" }}
+          >
+            <ZoomIn size={14} /> View larger
+          </span>
+
+          {/* shop name */}
+          <div
+            className={`absolute bottom-0 inset-x-0 p-5 md:p-9 pointer-events-none flex flex-col ${
+              centered ? "items-center text-center" : "items-start text-left"
+            }`}
+            style={{ color: "#fff" }}
+          >
+            {shop.category && (
+              <span
+                className="inline-block text-xs md:text-sm font-extrabold px-3 py-1 mb-2 md:mb-3"
+                style={{ background: c.accent, color: c.accentInk, borderRadius: variant === "slant" ? "6px" : "999px" }}
+              >
+                {shop.category}
+              </span>
+            )}
             <h1
-              className="text-6xl md:text-8xl break-words"
-              style={{ fontFamily: theme.headingFont, ...theme.headingStyle }}
+              className="text-4xl md:text-6xl break-words"
+              style={{
+                fontFamily: theme.headingFont,
+                lineHeight: 1.02,
+                textShadow: "0 2px 18px rgba(0,0,0,0.45)",
+                ...theme.headingStyle,
+              }}
             >
               {shop.name}
             </h1>
             {shop.shortDescription && (
-              <p className="text-lg mt-5 max-w-sm font-bold">{shop.shortDescription}</p>
+              <p className="text-sm md:text-lg mt-2 max-w-xl" style={{ opacity: 0.92 }}>
+                {shop.shortDescription}
+              </p>
             )}
           </div>
-          <div className="relative">
-            <div
-              className="absolute inset-0 translate-x-3 translate-y-3"
-              style={{ background: c.heroInk, clipPath: "polygon(14% 0, 100% 0, 100% 100%, 0 100%)" }}
-            />
-            <div
-              className="relative h-64 md:h-96 bg-white/40"
-              style={{ clipPath: "polygon(14% 0, 100% 0, 100% 100%, 0 100%)" }}
-            >
-              {photo && <img src={photo} alt={shop.name} className="w-full h-full object-cover" />}
-            </div>
-          </div>
         </div>
-      </div>
-    );
-  }
-
-  // Jewellery: sparkle texture, oval photo with gold ring
-  return (
-    <div className="relative overflow-hidden pt-24 pb-14 px-6 text-center" style={{ background: c.heroBg, color: c.heroInk }}>
-      <PatternLayer theme={theme} />
-      <BackLink />
-      <div className="relative max-w-2xl mx-auto flex flex-col items-center">
-        <div
-          className="w-44 h-56 md:w-52 md:h-64 mb-8 p-1.5 border-2"
-          style={{ borderColor: c.accent, borderRadius: "50%", boxShadow: `0 0 0 8px rgba(224,184,101,0.18)` }}
-        >
-          <div className="w-full h-full overflow-hidden bg-white/10" style={{ borderRadius: "50%" }}>
-            {photo && <img src={photo} alt={shop.name} className="w-full h-full object-cover" />}
-          </div>
-        </div>
-        {category}
-        {title}
-        {short}
       </div>
     </div>
   );
