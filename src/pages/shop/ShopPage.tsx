@@ -21,14 +21,14 @@ const ICONS: Record<PerkIcon, typeof Percent> = {
 
 // Scrolling offer strip + WhatsApp button pulse. Both switch off for people who
 // have "reduce motion" enabled.
-// .hero-img takes its height from the theme (--hero-h on mobile, --hero-h-md from md up).
+// .hero-frame matches the photo's shape and is capped at the theme's max height (--hero-h on mobile, --hero-h-md from md up).
 const ANIMATIONS = `
 @keyframes shop-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes shop-pulse { 0% { box-shadow: 0 0 0 0 rgba(37,211,102,.6); } 70% { box-shadow: 0 0 0 14px rgba(37,211,102,0); } 100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); } }
 .shop-marquee { animation: shop-marquee 26s linear infinite; }
 .shop-pulse { animation: shop-pulse 2.2s ease-out infinite; }
-.hero-img { height: var(--hero-h); }
-@media (min-width: 768px) { .hero-img { height: var(--hero-h-md); } }
+.hero-frame { aspect-ratio: var(--ratio); width: min(100%, calc(var(--hero-h) * var(--ratio))); }
+@media (min-width: 768px) { .hero-frame { width: min(100%, calc(var(--hero-h-md) * var(--ratio))); } }
 @media (prefers-reduced-motion: reduce) { .shop-marquee, .shop-pulse { animation: none; } }
 `;
 
@@ -458,32 +458,9 @@ function Lightbox({
   );
 }
 
-/* Photo that fills its frame. With fit="contain" the whole picture is always visible:
-   a blurred copy fills any spare space so it never looks like empty bars. */
-function HeroPhoto({ photo, alt, fit }: { photo?: string; alt: string; fit: "cover" | "contain" }) {
-  if (!photo) return null;
-  return (
-    <>
-      {fit === "contain" && (
-        <img
-          src={photo}
-          alt=""
-          aria-hidden
-          className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-70"
-        />
-      )}
-      <img
-        src={photo}
-        alt={alt}
-        className="relative w-full h-full"
-        style={{ objectFit: fit, objectPosition: "center" }}
-      />
-    </>
-  );
-}
-
-/* Hero: the shop-front photo is the star. One wide framed photo, name written over a soft
-   shadow at its bottom edge. The frame shape changes per theme; tapping it opens the viewer. */
+/* Hero: image only. The frame takes the exact shape of the photo, so the outline hugs it,
+   and it is never taller than the theme's max height, so it fits on one screen.
+   Tapping the photo opens the viewer. */
 function Hero({
   shop, theme, photo, onOpen,
 }: {
@@ -493,26 +470,30 @@ function Hero({
   onOpen: () => void;
 }) {
   const c = theme.colors;
-  const fit = theme.heroImage.fit;
   const variant = theme.hero;
-  const centered = variant === "centered";
+  const [ratio, setRatio] = useState(16 / 9); // width / height, updated once the photo loads
 
-  const sizeVars = {
+  const frameVars = {
     "--hero-h": theme.heroImage.height,
     "--hero-h-md": theme.heroImage.heightMd,
+    "--ratio": ratio,
   } as CSSProperties;
 
-  // Frame look per theme
+  // Outline / shadow per theme
   let frame: CSSProperties;
-  if (variant === "arch") {
-    frame = { borderRadius: "240px 240px 28px 28px", boxShadow: "0 30px 60px -25px rgba(0,0,0,0.6)" };
-  } else if (variant === "slant") {
+  if (variant === "slant") {
     frame = { borderRadius: theme.radius.card, border: `3px solid ${c.ink}`, boxShadow: `10px 10px 0 ${c.ink}` };
   } else if (variant === "centered") {
     frame = {
       borderRadius: "22px",
       border: `2px solid ${c.accent}`,
       boxShadow: "0 0 0 8px rgba(224,184,101,0.18), 0 30px 60px -25px rgba(0,0,0,0.6)",
+    };
+  } else if (variant === "arch") {
+    frame = {
+      borderRadius: theme.radius.card,
+      border: `2px solid ${c.accent}`,
+      boxShadow: "0 30px 60px -25px rgba(0,0,0,0.6)",
     };
   } else {
     frame = {
@@ -524,20 +505,14 @@ function Hero({
 
   return (
     <div
-      className="relative overflow-hidden pt-20 pb-8 md:pt-24 md:pb-10 px-4 md:px-12"
+      className="relative overflow-hidden pt-20 pb-8 md:pt-24 md:pb-10 px-4 md:px-8"
       style={{ background: c.heroBg, color: c.heroInk }}
     >
       <PatternLayer theme={theme} />
       <BackLink />
 
-      <div className="relative max-w-5xl mx-auto">
-        {/* decorative layer behind the frame */}
-        {variant === "arch" && (
-          <div
-            className="absolute inset-0 translate-x-3 translate-y-3 border-2"
-            style={{ borderColor: c.accent, borderRadius: "240px 240px 28px 28px" }}
-          />
-        )}
+      {/* outer box = exactly the photo's size; glow and outline are laid out against it */}
+      <div className="hero-frame relative mx-auto" style={frameVars}>
         {variant === "overlay" && (
           <div className="absolute -inset-3 opacity-40 blur-2xl" style={{ background: c.accent, borderRadius: "32px" }} />
         )}
@@ -548,54 +523,23 @@ function Hero({
           aria-label={`View ${shop.name} photo larger`}
           onClick={onOpen}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(); } }}
-          className="hero-img group relative w-full overflow-hidden cursor-zoom-in"
-          style={{ ...sizeVars, ...frame, background: "rgba(255,255,255,0.1)" }}
+          className="absolute inset-0 overflow-hidden cursor-zoom-in"
+          style={{ ...frame, background: "rgba(255,255,255,0.1)" }}
         >
-          <HeroPhoto photo={photo} alt={shop.name} fit={fit} />
-
-          {/* soft shadow so the name is readable on any photo */}
-          <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/75 via-black/30 to-transparent pointer-events-none" />
-
-          {/* "View larger" hint */}
-          <span
-            className="absolute top-3 right-3 md:top-4 md:right-5 flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold shadow transition group-hover:scale-105"
-            style={{ background: "rgba(255,255,255,0.92)", color: "#111", borderRadius: "999px" }}
-          >
-            <ZoomIn size={14} /> View larger
-          </span>
-
-          {/* shop name */}
-          <div
-            className={`absolute bottom-0 inset-x-0 p-5 md:p-9 pointer-events-none flex flex-col ${
-              centered ? "items-center text-center" : "items-start text-left"
-            }`}
-            style={{ color: "#fff" }}
-          >
-            {shop.category && (
-              <span
-                className="inline-block text-xs md:text-sm font-extrabold px-3 py-1 mb-2 md:mb-3"
-                style={{ background: c.accent, color: c.accentInk, borderRadius: variant === "slant" ? "6px" : "999px" }}
-              >
-                {shop.category}
-              </span>
-            )}
-            <h1
-              className="text-4xl md:text-6xl break-words"
-              style={{
-                fontFamily: theme.headingFont,
-                lineHeight: 1.02,
-                textShadow: "0 2px 18px rgba(0,0,0,0.45)",
-                ...theme.headingStyle,
+          {photo && (
+            <img
+              src={photo}
+              alt={shop.name}
+              className="w-full h-full block"
+              style={{ objectFit: "cover" }}
+              onLoad={(e) => {
+                const { naturalWidth: w, naturalHeight: h } = e.currentTarget;
+                if (w && h) setRatio(Math.min(3, Math.max(0.5, w / h)));
               }}
-            >
-              {shop.name}
-            </h1>
-            {shop.shortDescription && (
-              <p className="text-sm md:text-lg mt-2 max-w-xl" style={{ opacity: 0.92 }}>
-                {shop.shortDescription}
-              </p>
-            )}
-          </div>
+            />
+          )}
+          {/* Banner is image only. Name is kept for screen readers / search engines, but not shown. */}
+          <h1 className="sr-only">{shop.name}</h1>
         </div>
       </div>
     </div>

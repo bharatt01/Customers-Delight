@@ -22,13 +22,10 @@ export interface PerkTint {
 }
 
 export interface HeroImage {
-  // The shop-front photo is a wide, full-width frame. Heights use clamp()/svh so the
-  // whole frame always fits on one screen (no scrolling to see the photo).
-  height: string; // frame height on mobile
-  heightMd: string; // frame height on desktop (md and up)
-  // "contain" always shows the whole photo (a blurred copy fills spare space);
-  // "cover" fills the frame and may crop the edges.
-  fit: "cover" | "contain";
+  // Maximum height of the shop-front photo. The frame takes the photo's own shape (so the
+  // outline hugs it) and never gets taller than this, so the whole photo fits on one screen.
+  height: string; // max height on mobile
+  heightMd: string; // max height on desktop (md and up)
 }
 
 export interface ShopTheme {
@@ -80,7 +77,7 @@ export const SHOP_THEMES: Record<ThemeId, ShopTheme> = {
     bodyFont: "'Manrope', system-ui, sans-serif",
     headingStyle: { fontWeight: 800, letterSpacing: "-0.035em" },
     hero: "overlay",
-    heroImage: { height: "clamp(280px, 46svh, 400px)", heightMd: "clamp(340px, calc(100svh - 230px), 540px)", fit: "contain" },
+    heroImage: { height: "clamp(300px, 52svh, 460px)", heightMd: "clamp(380px, calc(100svh - 170px), 680px)" },
     cardStyle: "soft",
     radius: { card: "20px", button: "12px" },
     pattern: {
@@ -134,7 +131,7 @@ export const SHOP_THEMES: Record<ThemeId, ShopTheme> = {
     bodyFont: "'Mulish', system-ui, sans-serif",
     headingStyle: { fontWeight: 700, letterSpacing: "-0.01em", fontStyle: "italic" },
     hero: "arch",
-    heroImage: { height: "clamp(280px, 46svh, 400px)", heightMd: "clamp(340px, calc(100svh - 230px), 540px)", fit: "contain" },
+    heroImage: { height: "clamp(300px, 52svh, 460px)", heightMd: "clamp(380px, calc(100svh - 170px), 680px)" },
     cardStyle: "soft",
     radius: { card: "24px", button: "999px" },
     pattern: {
@@ -194,7 +191,7 @@ export const SHOP_THEMES: Record<ThemeId, ShopTheme> = {
       lineHeight: 0.9,
     },
     hero: "slant",
-    heroImage: { height: "clamp(280px, 46svh, 400px)", heightMd: "clamp(340px, calc(100svh - 230px), 540px)", fit: "contain" },
+    heroImage: { height: "clamp(300px, 52svh, 460px)", heightMd: "clamp(380px, calc(100svh - 170px), 680px)" },
     cardStyle: "hard",
     radius: { card: "14px", button: "10px" },
     pattern: {
@@ -246,7 +243,7 @@ export const SHOP_THEMES: Record<ThemeId, ShopTheme> = {
     bodyFont: "'Jost', system-ui, sans-serif",
     headingStyle: { fontWeight: 400, letterSpacing: "0.02em" },
     hero: "centered",
-    heroImage: { height: "clamp(280px, 46svh, 400px)", heightMd: "clamp(340px, calc(100svh - 230px), 540px)", fit: "contain" },
+    heroImage: { height: "clamp(300px, 52svh, 460px)", heightMd: "clamp(380px, calc(100svh - 170px), 680px)" },
     cardStyle: "soft",
     radius: { card: "18px", button: "12px" },
     pattern: {
