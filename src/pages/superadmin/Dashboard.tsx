@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
+import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
 import { auth } from "@/firebase/firebase";
 import { getBlogs, deleteBlog } from "./../../services/blogService";
 import { getShops, deleteShop, togglePublish } from "./../../services/shopService";
@@ -9,9 +10,13 @@ import { Shop } from "@/types/shop";
 import {
   Plus, Pencil, Trash2, LogOut, Eye, EyeOff, Store, Newspaper,
   ExternalLink, Search, MousePointerClick, BarChart3,
+  QrCode, Download, Copy, Check, X,
 } from "lucide-react";
 
 type Tab = "blogs" | "shops";
+
+// The public link of a shop page. This is what the QR code points to.
+const shopLink = (slug: string) => `${window.location.origin}/shops/${slug}`;
 
 export default function Dashboard() {
   const [tab, setTab] = useState<Tab>("shops");
@@ -19,6 +24,7 @@ export default function Dashboard() {
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [qrShop, setQrShop] = useState<Shop | null>(null);
   const navigate = useNavigate();
 
   async function loadAll() {
@@ -237,12 +243,20 @@ export default function Dashboard() {
                     <td className="px-6 py-4 font-bold tabular-nums">{shop.whatsappClicks ?? 0}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setQrShop(shop)}
+                          title="QR code"
+                          aria-label={`QR code for ${shop.name}`}
+                          className="p-2.5 rounded-xl border border-black/10 hover:bg-gray-50 transition"
+                        >
+                          <QrCode size={16} />
+                        </button>
                         {shop.published && (
-                          
                           <a
                             href={`/shops/${shop.slug}`}
                             target="_blank"
                             rel="noreferrer"
+                            title="Open shop page"
                             className="p-2.5 rounded-xl border border-black/10 hover:bg-gray-50 transition"
                           >
                             <ExternalLink size={16} />
@@ -357,6 +371,8 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {qrShop && <QrModal shop={qrShop} onClose={() => setQrShop(null)} />}
     </div>
   );
 }
@@ -380,6 +396,123 @@ function StatCard({
       </div>
       <p className="text-3xl font-black tabular-nums">{value.toLocaleString()}</p>
       <p className="text-sm text-gray-400 mt-1">{sublabel}</p>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* QR code popup: preview + download (PNG for sharing, SVG for printing) */
+
+function QrModal({ shop, onClose }: { shop: Shop; onClose: () => void }) {
+  const link = shopLink(shop.slug);
+  const canvasWrap = useRef<HTMLDivElement>(null); // holds the hidden hi-res canvas for PNG
+  const svgWrap = useRef<HTMLDivElement>(null); // holds the visible SVG preview
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  function saveBlob(url: string, filename: string) {
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  function downloadPng() {
+    const canvas = canvasWrap.current?.querySelector("canvas");
+    if (!canvas) return;
+    saveBlob(canvas.toDataURL("image/png"), `${shop.slug}-qr.png`);
+  }
+
+  function downloadSvg() {
+    const svg = svgWrap.current?.querySelector("svg");
+    if (!svg) return;
+    const source = new XMLSerializer().serializeToString(svg);
+    const url = URL.createObjectURL(new Blob([source], { type: "image/svg+xml" }));
+    saveBlob(url, `${shop.slug}-qr.svg`);
+    URL.revokeObjectURL(url);
+  }
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      /* clipboard blocked: the link is still shown on screen to copy by hand */
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`QR code for ${shop.name}`}
+    >
+      <div
+        className="relative w-full max-w-sm bg-white rounded-3xl p-7 text-center shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition"
+        >
+          <X size={18} />
+        </button>
+
+        <p className="text-xs font-black uppercase tracking-wide text-gray-400">Shop QR code</p>
+        <h2 className="text-2xl font-black mt-1 break-words">{shop.name}</h2>
+
+        {/* visible preview (crisp SVG) */}
+        <div ref={svgWrap} className="inline-block mt-5 p-4 bg-white rounded-2xl border border-black/10">
+          <QRCodeSVG value={link} size={220} fgColor="#0a0a0a" bgColor="#ffffff" level="M" includeMargin />
+        </div>
+
+        {/* hidden hi-res canvas used for the PNG download */}
+        <div ref={canvasWrap} className="hidden" aria-hidden>
+          <QRCodeCanvas value={link} size={1024} fgColor="#0a0a0a" bgColor="#ffffff" level="M" includeMargin />
+        </div>
+
+        <p className="mt-4 text-xs text-gray-500 break-all">{link}</p>
+
+        {!shop.published && (
+          <p className="mt-3 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+            This shop is a draft. The link won't open until you publish it.
+          </p>
+        )}
+
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <button
+            onClick={downloadPng}
+            className="flex items-center justify-center gap-2 bg-black text-white font-bold text-sm py-3 rounded-xl hover:bg-gray-800 transition"
+          >
+            <Download size={16} /> PNG
+          </button>
+          <button
+            onClick={downloadSvg}
+            className="flex items-center justify-center gap-2 border border-black/15 font-bold text-sm py-3 rounded-xl hover:bg-gray-50 transition"
+          >
+            <Download size={16} /> SVG
+          </button>
+        </div>
+        <button
+          onClick={copyLink}
+          className="mt-3 w-full flex items-center justify-center gap-2 text-sm font-bold text-gray-600 hover:text-black py-2 transition"
+        >
+          {copied ? <Check size={15} /> : <Copy size={15} />} {copied ? "Link copied" : "Copy link"}
+        </button>
+      </div>
     </div>
   );
 }
